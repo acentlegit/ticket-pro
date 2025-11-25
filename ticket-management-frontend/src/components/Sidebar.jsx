@@ -1,0 +1,97 @@
+import React from 'react'
+import { NavLink } from 'react-router-dom'
+import { X, Home, Ticket, Plus, Users, BarChart3, Settings, Building2 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+
+const Sidebar = ({ open, setOpen }) => {
+  const { user } = useAuth()
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'All Tickets', href: '/tickets', icon: Ticket },
+    { name: 'Create Ticket', href: '/tickets/new', icon: Plus },
+    { name: 'Customers', href: '/customers', icon: Building2 },
+    ...(user?.role === 'admin' || user?.role === 'supervisor' 
+      ? [{ name: 'User Management', href: '/users', icon: Users }] 
+      : []),
+    { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ]
+
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {open && (
+        <div 
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 lg:hidden z-40"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        ${open ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+              <Ticket className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">TicketPro</span>
+          </div>
+          
+          <button
+            onClick={() => setOpen(false)}
+            className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <nav className="mt-6 px-3">
+          <div className="space-y-1">
+            {navigation.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    isActive
+                      ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-700'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  }`
+                }
+                onClick={() => setOpen(false)}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
+              </NavLink>
+            ))}
+          </div>
+        </nav>
+
+        {/* User info at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-medium">
+                {user?.name?.charAt(0)?.toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {user?.name}
+              </p>
+              <p className="text-xs text-gray-500 capitalize">
+                {user?.role}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default Sidebar
