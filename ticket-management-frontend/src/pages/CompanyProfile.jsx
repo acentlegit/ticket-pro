@@ -39,11 +39,31 @@ const CompanyProfile = () => {
   const fetchCompanyProfile = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/company/profile')
-      if (response.data) {
-        setFormData(response.data)
-        setOriginalData(response.data)
-        setLogoPreview(response.data.logoUrl)
+      const companyId = localStorage.getItem('companyId');
+      const response = await api.get('/companies/'+companyId)
+      if (response.data?.company) {
+        const company = response.data.company
+        const profileData = {
+          companyName: company.companyName || '',
+          alias: company.alias || '',
+          description: company.description || '',
+          website: company.website || '',
+          employeeCount: company.employeeCount || '',
+          primaryContact: company.primaryContact?.email || '',
+          currencyLocale: company.currencyLocale || '',
+          street: company.address?.street || '',
+          city: company.address?.city || '',
+          state: company.address?.state || '',
+          zipCode: company.address?.zipCode || '',
+          country: company.address?.country || '',
+          phone: company.phone || company.address?.phone || '',
+          mobile: company.address?.mobile || '',
+          fax: company.address?.fax || '',
+          logoUrl: company.logoUrl || ''
+        }
+        setFormData(profileData)
+        setOriginalData(profileData)
+        setLogoPreview(company.logoUrl)
       }
     } catch (error) {
       console.error('Failed to fetch company profile:', error)
@@ -108,25 +128,30 @@ const CompanyProfile = () => {
     setLoading(true)
 
     try {
-      const formDataToSend = new FormData()
-      Object.keys(formData).forEach(key => {
-        if (key !== 'logoFile' && formData[key]) {
-          formDataToSend.append(key, formData[key])
+      const companyId = localStorage.getItem('companyId')
+      const updateData = {
+        companyName: formData.companyName,
+        alias: formData.alias,
+        description: formData.description,
+        website: formData.website,
+        employeeCount: parseInt(formData.employeeCount) || 0,
+        currencyLocale: formData.currencyLocale,
+        address: {
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country,
+          phone: formData.phone,
+          mobile: formData.mobile,
+          fax: formData.fax
         }
-      })
-      
-      if (formData.logoFile) {
-        formDataToSend.append('logo', formData.logoFile)
       }
 
-      const response = await api.put('/company/profile', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      const response = await api.put(`/companies/${companyId}`, updateData)
 
       setSuccess('Company profile updated successfully!')
-      setOriginalData(response.data)
+      setOriginalData(formData)
       setIsEditMode(false)
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {

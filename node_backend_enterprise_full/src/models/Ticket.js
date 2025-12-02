@@ -17,9 +17,9 @@ const TicketSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Contact'
   },
-  accountId: {
+  companyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Account'
+    ref: 'Company'
   },
   assignedAgentId: {
     type: mongoose.Schema.Types.ObjectId,

@@ -20,9 +20,9 @@ const ContactSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Phone number cannot exceed 50 characters']
   },
-  accountId: {
+  companyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Account'
+    ref: 'Company'
   },
   isActive: {
     type: Boolean,
@@ -36,7 +36,7 @@ const ContactSchema = new mongoose.Schema({
 
 // Indexes
 ContactSchema.index({ email: 1 });
-ContactSchema.index({ accountId: 1 });
+ContactSchema.index({ companyId: 1 });
 ContactSchema.index({ fullName: 1 });
 ContactSchema.index({ isActive: 1 });
 

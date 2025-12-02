@@ -31,7 +31,7 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // Get all accounts
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/:companyId/accounts', authenticateToken, async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
 
@@ -66,7 +66,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create account
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/:companyId/accounts', authenticateToken, async (req, res) => {
   try {
     const { accountName, address, domain } = req.body;
 
@@ -94,7 +94,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get single account
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:companyId/accounts/:id', authenticateToken, async (req, res) => {
   try {
     const account = await Account.findById(req.params.id);
 
@@ -110,7 +110,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Update account
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:companyId/accounts/:id', authenticateToken, async (req, res) => {
   try {
     const account = await Account.findByIdAndUpdate(
       req.params.id,

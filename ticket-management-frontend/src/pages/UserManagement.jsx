@@ -42,7 +42,9 @@ const UserManagement = () => {
     setError('')
 
     try {
-      const response = await api.post('/auth/register', newUser)
+      const companyId = localStorage.getItem('companyId')
+      const userData = { ...newUser, companyId }
+      const response = await api.post('/auth/register', userData)
       setUsers([...users, response.data.user])
       setShowCreateModal(false)
       setNewUser({ name: '', email: '', password: '', role: 'customer' })

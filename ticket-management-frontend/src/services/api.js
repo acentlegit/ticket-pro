@@ -16,6 +16,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // // Add company ID to path for non-auth endpoints
+    // const companyId = localStorage.getItem('companyId')
+    // if (companyId && !config.url.startsWith('/auth/') && !config.url.startsWith('/companies/')) {
+    //   config.url = `/companies/${companyId}${config.url}`
+    // }
+    
     return config
   },
   (error) => {
@@ -29,6 +36,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('companyId')
+      localStorage.removeItem('company')
       window.location.href = '/login'
     }
     return Promise.reject(error)

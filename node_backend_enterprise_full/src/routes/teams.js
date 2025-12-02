@@ -31,7 +31,7 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // Get all teams
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/:companyId/teams', authenticateToken, async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
     
@@ -64,7 +64,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create team
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/:companyId/teams', authenticateToken, async (req, res) => {
   try {
     const { teamName, description, departmentHeadId } = req.body;
 
@@ -95,7 +95,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get single team
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:companyId/teams/:id', authenticateToken, async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
       .populate('departmentHeadId', 'fullName email');
@@ -112,7 +112,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Update team
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:companyId/teams/:id', authenticateToken, async (req, res) => {
   try {
     const team = await Team.findByIdAndUpdate(
       req.params.id,

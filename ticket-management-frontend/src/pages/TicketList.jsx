@@ -37,7 +37,8 @@ const TicketList = () => {
 
   const fetchTickets = async () => {
     try {
-      const response = await api.get('/tickets')
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/tickets`)
       setTickets(response.data.tickets || [])
     } catch (error) {
       console.error('Failed to fetch tickets:', error)

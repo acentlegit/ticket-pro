@@ -49,7 +49,7 @@ const requireRole = (roles) => {
 // Register endpoint
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, role, phone, companyId } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -63,7 +63,8 @@ router.post('/register', async (req, res) => {
       email,
       password: hash,
       role: role || 'customer',
-      phone
+      phone,
+      companyId
     });
 
     // Generate token
@@ -80,8 +81,10 @@ router.post('/register', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+        companyId: user.companyId
+      },
+      companyId: user.companyId
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -126,8 +129,10 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        lastLogin: user.lastLogin
-      }
+        lastLogin: user.lastLogin,
+        companyId: user.companyId
+      },
+      companyId: user.companyId
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -144,7 +149,8 @@ router.get('/me', authenticateToken, async (req, res) => {
         name: req.user.name,
         email: req.user.email,
         role: req.user.role,
-        lastLogin: req.user.lastLogin
+        lastLogin: req.user.lastLogin,
+        companyId: req.user.companyId
       }
     });
   } catch (error) {

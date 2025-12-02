@@ -47,7 +47,8 @@ const Dashboard = () => {
 
   const checkCompanySetup = async () => {
     try {
-      const response = await api.get('/company/profile')
+      const user = JSON.parse(localStorage.getItem("user"))
+      const response = await api.get('/companies/by-user/'+user._id)
       // If no company data or company name is empty, show welcome modal
       if (!response.data || !response.data.companyName) {
         setShowWelcomeModal(true)
@@ -73,7 +74,8 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await api.get('/tickets')
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/tickets`)
       const tickets = response.data.tickets || []
       
       // Calculate comprehensive stats

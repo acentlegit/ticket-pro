@@ -16,6 +16,7 @@ import accountRoutes from './src/routes/accounts.js';
 import contactRoutes from './src/routes/contacts.js';
 import teamRoutes from './src/routes/teams.js';
 import agentRoutes from './src/routes/agents.js';
+import companyRoutes from './src/routes/companies.js';
 import { connectDB, initializeModels } from './src/config/database.js';
 import { seedInitialData, seedSampleData } from './src/config/seeder.js';
 
@@ -33,6 +34,7 @@ import './src/models/User.js';
 import './src/models/Ticket.js';
 import './src/models/Account.js';
 import './src/models/Contact.js';
+import './src/models/Company.js';
 import './src/models/Agent.js';
 import './src/models/Role.js';
 import './src/models/Permission.js';
@@ -56,6 +58,7 @@ const corsOptions = {
       'http://localhost:5173', // Vite default port
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5173',
+      'http://ticket-tracker-dev.s3-website-us-east-1.amazonaws.com',
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
     
@@ -144,11 +147,13 @@ app.get('/cors-test', (req, res) => {
 // Routes
 app.use('/health', healthRoutes);
 app.use('/auth', authRoutes);
-app.use('/tickets', ticketRoutes);
-app.use('/accounts', accountRoutes);
-app.use('/contacts', contactRoutes);
-app.use('/teams', teamRoutes);
-app.use('/agents', agentRoutes);
+
+app.use('/', accountRoutes);
+app.use('/', contactRoutes);
+app.use('/', teamRoutes);
+app.use('/', agentRoutes);
+app.use('/', companyRoutes);
+app.use('/', ticketRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
 // Global error handler

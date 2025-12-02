@@ -41,13 +41,26 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password })
-      const { token, user } = response.data
+      const { token, user, companyId } = response.data
       
       if (!token || !user) {
         throw new Error('Invalid response format from server')
       }
       
       localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      
+      if (companyId) {
+        localStorage.setItem('companyId', companyId)
+        // Fetch company details
+        try {
+          const companyResponse = await api.get(`/companies/${companyId}`)
+          localStorage.setItem('company', JSON.stringify(companyResponse.data.company))
+        } catch (error) {
+          console.error('Failed to fetch company details:', error)
+        }
+      }
+      
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(user)
       
@@ -63,6 +76,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('companyId')
+    localStorage.removeItem('company')
     delete api.defaults.headers.common['Authorization']
     setUser(null)
   }

@@ -2,7 +2,7 @@
 import express from 'express';
 import Ticket from '../models/Ticket.js';
 import User from '../models/User.js';
-import Account from '../models/Account.js';
+import Company from '../models/Company.js';
 import Contact from '../models/Contact.js';
 import Agent from '../models/Agent.js';
 import Team from '../models/Team.js';
@@ -52,7 +52,7 @@ const requireRole = (roles) => {
 };
 
 // Create ticket
-router.post('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent', 'customer']), async (req, res) => {
+router.post('/:companyId/tickets', authenticateToken, requireRole(['admin', 'supervisor', 'agent', 'customer']), async (req, res) => {
   try {
     const {
       subject,
@@ -62,12 +62,12 @@ router.post('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent',
       category,
       dueDate,
       contactId,
-      accountId,
+      companyId,
       assignedAgentId,
       teamId,
       productName,
       contactName,
-      accountName,
+      companyName,
       email,
       phone,
       address,
@@ -77,23 +77,23 @@ router.post('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent',
     if (!subject || !description) {
       return res.status(400).json({ message: 'Subject and description are required' });
     }
-    let account = await Account.findById(req.params.id);
-    if (!account) {
-      account = await Account.create({
-        accountName: accountName.trim(),
-        address: address?.trim(),
-        domain: domain?.trim()
+    let company = await Company.findById(companyId);
+    if (!company && companyName) {
+      company = await Company.create({
+        companyName: companyName.trim(),
+        address: address ? { street: address } : null,
+        website: domain?.trim()
       });
     }
     let contact = await Contact.findOne({ email: email })
-      .populate('accountId', 'accountName domain');
+      .populate('companyId', 'companyName website');
 
     if (!contact) {
       contact = await Contact.create({
         fullName: contactName.trim(),
         email: email?.trim(),
         phoneNumber: phone?.trim(),
-        accountId: account._id || null
+        companyId: company?._id || null
       });
     }
 
@@ -109,7 +109,7 @@ router.post('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent',
       productName: productName || null,
       dueDate: dueDate ? new Date(dueDate) : null,
       contactId: contact._id || null,
-      accountId: account._id || null,
+      companyId: company?._id || null,
       assignedAgentId: assignedAgentId || null,
       teamId: teamId || null,
       createdBy: req.user._id,
@@ -133,7 +133,7 @@ router.post('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent',
     // Populate the ticket with related data
     const populatedTicket = await Ticket.findById(ticket._id)
       .populate('contactId', 'fullName email phoneNumber')
-      .populate('accountId', 'accountName domain')
+      .populate('companyId', 'companyName website')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
       .populate('createdBy', 'name email')
@@ -153,7 +153,7 @@ router.post('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent',
 });
 
 // Get all tickets
-router.get('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
+router.get('/:companyId/tickets', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
   try {
     const { status, priority, assignedTo, page = 1, limit = 50 } = req.query;
 
@@ -165,7 +165,7 @@ router.get('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent'])
 
     const tickets = await Ticket.find(filter)
       .populate('contactId', 'fullName email phoneNumber')
-      .populate('accountId', 'accountName domain')
+      .populate('companyId', 'companyName website')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
       .populate('createdBy', 'name email')
@@ -192,11 +192,11 @@ router.get('/', authenticateToken, requireRole(['admin', 'supervisor', 'agent'])
 });
 
 // Get single ticket
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:companyId/tickets/:id', authenticateToken, async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id)
       .populate('contactId', 'fullName email phoneNumber')
-      .populate('accountId', 'accountName domain')
+      .populate('companyId', 'companyName website')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
       .populate('createdBy', 'name email')
@@ -224,7 +224,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Update ticket (PUT - full update)
-router.put('/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
+router.put('/:companyId/tickets/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
 
@@ -238,7 +238,7 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent
       { new: true, runValidators: true }
     )
       .populate('contactId', 'fullName email phoneNumber')
-      .populate('accountId', 'accountName domain')
+      .populate('companyId', 'companyName website')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
       .populate('createdBy', 'name email')
@@ -255,7 +255,7 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent
 });
 
 // Update ticket (PATCH - partial update)
-router.patch('/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
+router.patch('/:companyId/tickets/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
 
@@ -286,7 +286,7 @@ router.patch('/:id', authenticateToken, requireRole(['admin', 'supervisor', 'age
       { new: true, runValidators: true }
     )
       .populate('contactId', 'fullName email phoneNumber')
-      .populate('accountId', 'accountName domain')
+      .populate('companyId', 'companyName website')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
       .populate('createdBy', 'name email')
@@ -318,7 +318,7 @@ router.patch('/:id', authenticateToken, requireRole(['admin', 'supervisor', 'age
 });
 
 // Delete ticket (admin only)
-router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
+router.delete('/:companyId/tickets/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
 

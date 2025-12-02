@@ -15,6 +15,11 @@ const TeamSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    required: [true, 'Company is required']
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -28,6 +33,7 @@ const TeamSchema = new mongoose.Schema({
 // Indexes
 TeamSchema.index({ teamName: 1 });
 TeamSchema.index({ departmentHeadId: 1 });
+TeamSchema.index({ companyId: 1 });
 TeamSchema.index({ isActive: 1 });
 
 // Virtual for agents count

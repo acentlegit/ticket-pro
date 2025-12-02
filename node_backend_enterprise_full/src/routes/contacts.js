@@ -31,9 +31,9 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // Get all contacts
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/:companyId/contacts', authenticateToken, async (req, res) => {
   try {
-    const { search, accountId, page = 1, limit = 50 } = req.query;
+    const { search, companyId, page = 1, limit = 50 } = req.query;
     
     const filter = {};
     if (search) {
@@ -42,12 +42,12 @@ router.get('/', authenticateToken, async (req, res) => {
         { email: { $regex: search, $options: 'i' } }
       ];
     }
-    if (accountId) {
-      filter.accountId = accountId;
+    if (companyId) {
+      filter.companyId = companyId;
     }
 
     const contacts = await Contact.find(filter)
-      .populate('accountId', 'accountName')
+      .populate('companyId', 'companyName')
       .sort({ fullName: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -70,9 +70,9 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create contact
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/:companyId/contacts', authenticateToken, async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, accountId } = req.body;
+    const { fullName, email, phoneNumber, companyId } = req.body;
 
     if (!fullName) {
       return res.status(400).json({ message: 'Full name is required' });
@@ -82,11 +82,11 @@ router.post('/', authenticateToken, async (req, res) => {
       fullName: fullName.trim(),
       email: email?.trim(),
       phoneNumber: phoneNumber?.trim(),
-      accountId: accountId || null
+      companyId: companyId || null
     });
     
     const populatedContact = await Contact.findById(contact._id)
-      .populate('accountId', 'accountName');
+      .populate('companyId', 'companyName');
     
     res.status(201).json({
       message: 'Contact created successfully',
@@ -102,12 +102,12 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Find contact by email
-router.get('/email/:email', authenticateToken, async (req, res) => {
+router.get('/:companyId/contacts/email/:email', authenticateToken, async (req, res) => {
   try {
     const email = req.params.email.toLowerCase().trim();
     
     const contact = await Contact.findOne({ email: email })
-      .populate('accountId', 'accountName domain');
+      .populate('companyId', 'companyName website');
     
     if (!contact) {
       return res.status(404).json({ 
@@ -127,10 +127,10 @@ router.get('/email/:email', authenticateToken, async (req, res) => {
 });
 
 // Get single contact by ID
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:companyId/contacts/:id', authenticateToken, async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id)
-      .populate('accountId', 'accountName');
+      .populate('companyId', 'companyName');
     
     if (!contact) {
       return res.status(404).json({ message: 'Contact not found' });
@@ -144,13 +144,13 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Update contact
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:companyId/contacts/:id', authenticateToken, async (req, res) => {
   try {
     const contact = await Contact.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('accountId', 'accountName');
+    ).populate('companyId', 'companyName');
     
     if (!contact) {
       return res.status(404).json({ message: 'Contact not found' });
