@@ -30,20 +30,17 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Get company by primary user ID
+// Get all companies created by primary user ID
 router.get('/companies/by-user/:userId', authenticateToken, async (req, res) => {
   try {
-    const company = await Company.findOne({ primaryContact: req.params.userId })
-      .populate('primaryContact', 'name email');
+    const companies = await Company.find({ primaryContact: req.params.userId })
+      .populate('primaryContact', 'name email')
+      .sort({ companyName: 1 });
 
-    if (!company) {
-      return res.status(404).json({ message: 'Company not found for this user' });
-    }
-
-    res.json({ company });
+    res.json({ companies });
   } catch (error) {
-    console.error('Get company by user error:', error);
-    res.status(500).json({ message: 'Failed to fetch company' });
+    console.error('Get companies by user error:', error);
+    res.status(500).json({ message: 'Failed to fetch companies' });
   }
 });
 

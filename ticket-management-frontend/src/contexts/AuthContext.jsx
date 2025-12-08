@@ -50,16 +50,17 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
       
-      if (companyId) {
-        localStorage.setItem('companyId', companyId)
-        // Fetch company details
-        try {
-          const companyResponse = await api.get(`/companies/${companyId}`)
-          localStorage.setItem('company', JSON.stringify(companyResponse.data.company))
-        } catch (error) {
-          console.error('Failed to fetch company details:', error)
-        }
-      }
+      // if (companyId) {
+      //   localStorage.setItem('companyId', companyId)
+      //   // Fetch company details
+      //   try {
+      //     const companyResponse = await api.get(`/companies/${companyId}`)
+      //     debugger
+      //     localStorage.setItem('company', JSON.stringify(companyResponse.data.company))
+      //   } catch (error) {
+      //     console.error('Failed to fetch company details:', error)
+      //   }
+      // }
       
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(user)

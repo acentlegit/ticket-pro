@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { 
   Plus, 
   Search, 
@@ -24,6 +24,7 @@ import api from '../services/api'
 const TicketList = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { companyId } = useParams()
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -95,7 +96,7 @@ const TicketList = () => {
     e.preventDefault()
     e.stopPropagation()
     try {
-      await api.patch(`/tickets/${ticketId}`, { isRead: true })
+      await api.patch(`/${companyId}/tickets/${ticketId}`, { isRead: true })
       // Update local state
       setTickets(tickets.map(t => 
         t._id === ticketId ? { ...t, isRead: true } : t
@@ -108,7 +109,7 @@ const TicketList = () => {
   const handleEdit = (ticketId, e) => {
     e.preventDefault()
     e.stopPropagation()
-    navigate(`/tickets/${ticketId}/edit`)
+    navigate(`/companies/${companyId}/tickets/${ticketId}/edit`)
   }
 
   if (loading) {
@@ -149,7 +150,7 @@ const TicketList = () => {
               />
             </div>
             <Link
-              to="/tickets/new"
+              to={`/companies/${companyId}/tickets/new`}
               className="btn-primary flex items-center space-x-2"
             >
               <Plus className="h-4 w-4" />
@@ -235,7 +236,7 @@ const TicketList = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
-                        to={`/tickets/${ticket._id}`}
+                        to={`/companies/${companyId}/tickets/${ticket._id}`}
                         className="text-sm font-medium text-primary-600 hover:text-primary-700"
                       >
                         #{(ticket._id?.slice(-6) || `${100 + index}`).toUpperCase()}
@@ -245,7 +246,7 @@ const TicketList = () => {
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(ticket.status)}
                         <Link
-                          to={`/tickets/${ticket._id}`}
+                          to={`/companies/${companyId}/tickets/${ticket._id}`}
                           className="text-sm font-medium text-gray-900 hover:text-primary-600 max-w-xs truncate"
                         >
                           {ticket.subject}
@@ -253,7 +254,7 @@ const TicketList = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {ticket.contactId?.fullName || ticket.createdBy?.name || '-'}
+                      {ticket.contactId?.firstName || ticket.createdBy?.name || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {ticket.accountId?.accountName || '-'}

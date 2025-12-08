@@ -12,7 +12,7 @@ const CompanyProfile = () => {
   
   const [formData, setFormData] = useState({
     companyName: '',
-    alias: '',
+
     description: '',
     website: '',
     employeeCount: '',
@@ -45,18 +45,18 @@ const CompanyProfile = () => {
         const company = response.data.company
         const profileData = {
           companyName: company.companyName || '',
-          alias: company.alias || '',
+
           description: company.description || '',
           website: company.website || '',
           employeeCount: company.employeeCount || '',
           primaryContact: company.primaryContact?.email || '',
-          currencyLocale: company.currencyLocale || '',
+          currencyLocale: company.currencyLocale || company.currencyCode||'',
           street: company.address?.street || '',
           city: company.address?.city || '',
           state: company.address?.state || '',
           zipCode: company.address?.zipCode || '',
           country: company.address?.country || '',
-          phone: company.phone || company.address?.phone || '',
+          phone: company.phone || company.address?.mobile || '',
           mobile: company.address?.mobile || '',
           fax: company.address?.fax || '',
           logoUrl: company.logoUrl || ''
@@ -131,7 +131,7 @@ const CompanyProfile = () => {
       const companyId = localStorage.getItem('companyId')
       const updateData = {
         companyName: formData.companyName,
-        alias: formData.alias,
+
         description: formData.description,
         website: formData.website,
         employeeCount: parseInt(formData.employeeCount) || 0,
@@ -356,8 +356,8 @@ const CompanyProfile = () => {
                 </div>
               </div>
 
-              {/* Company Name and Alias */}
-              <div className="grid grid-cols-2 gap-6 mb-6">
+              {/* Company Name */}
+              <div className="mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Company Name <span className="text-red-500">*</span>
@@ -368,19 +368,6 @@ const CompanyProfile = () => {
                     value={formData.companyName}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Alias
-                  </label>
-                  <input
-                    type="text"
-                    name="alias"
-                    value={formData.alias}
-                    onChange={handleChange}
-                    placeholder="Enter an alternate name"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>

@@ -17,11 +17,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    // // Add company ID to path for non-auth endpoints
-    // const companyId = localStorage.getItem('companyId')
-    // if (companyId && !config.url.startsWith('/auth/') && !config.url.startsWith('/companies/')) {
-    //   config.url = `/companies/${companyId}${config.url}`
-    // }
+    // Company ID is now part of the URL path
     
     return config
   },

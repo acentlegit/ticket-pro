@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload } from 'lucide-react'
 import { Input, Select, TextArea, Button } from '../components/ui'
@@ -9,12 +9,13 @@ const AddAgent = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [departments, setDepartments] = useState([])
   
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    departments: [],
+    departments: '',
     roleAndPermission: 'Agent',
     channelExpert: '',
     about: '',
@@ -25,6 +26,20 @@ const AddAgent = () => {
   })
 
   const [imagePreview, setImagePreview] = useState(null)
+
+  useEffect(() => {
+    fetchDepartments()
+  }, [])
+
+  const fetchDepartments = async () => {
+    try {
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/departments`)
+      setDepartments(response.data.departments || [])
+    } catch (error) {
+      console.error('Failed to fetch departments:', error)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -81,12 +96,13 @@ const AddAgent = () => {
       if (formData.profileImage) {
         formDataToSend.append('profileImage', formData.profileImage)
       }
-
-      await api.post('/agents', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      const companyId = localStorage.getItem('companyId')
+      await api.post(`/${companyId}/agents`,formDataToSend)
+      // await api.post(`/${companyId}/agents`, formDataToSend, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data'
+      //   }
+      // })
 
       setSuccess('Agent added successfully!')
       setTimeout(() => {
@@ -222,10 +238,11 @@ const AddAgent = () => {
                 onChange={handleChange}
               >
                 <option value="">-Select-</option>
-                <option value="support">Support</option>
-                <option value="sales">Sales</option>
-                <option value="technical">Technical</option>
-                <option value="billing">Billing</option>
+                {departments.map(dept => (
+                  <option key={dept._id} value={dept._id}>
+                    {dept.departmentName}
+                  </option>
+                ))}
               </Select>
 
               {/* Role and Permission */}

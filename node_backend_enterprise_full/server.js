@@ -17,6 +17,9 @@ import contactRoutes from './src/routes/contacts.js';
 import teamRoutes from './src/routes/teams.js';
 import agentRoutes from './src/routes/agents.js';
 import companyRoutes from './src/routes/companies.js';
+import brandingRoutes from './src/routes/branding.js';
+import departmentRoutes from './src/routes/departments.js';
+import productRoutes from './src/routes/products.js';
 import { connectDB, initializeModels } from './src/config/database.js';
 import { seedInitialData, seedSampleData } from './src/config/seeder.js';
 
@@ -44,6 +47,8 @@ import './src/models/Tag.js';
 import './src/models/TicketComment.js';
 import './src/models/TicketHistory.js';
 import './src/models/TicketAttachment.js';
+import './src/models/CompanyBranding.js';
+import './src/models/Invitation.js';
 
 const app = express();
 
@@ -97,6 +102,9 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve uploaded files
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
+
 // Initialize database connection and models
 const initializeApp = async () => {
   try {
@@ -118,9 +126,9 @@ const initializeApp = async () => {
     await seedInitialData();
     
     // Seed sample data in development
-    if (process.env.NODE_ENV === 'development') {
-      await seedSampleData();
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   await seedSampleData();
+    // }
     
     console.log('✓ Application initialization completed successfully');
   } catch (error) {
@@ -153,6 +161,9 @@ app.use('/', contactRoutes);
 app.use('/', teamRoutes);
 app.use('/', agentRoutes);
 app.use('/', companyRoutes);
+app.use('/', brandingRoutes);
+app.use('/', departmentRoutes);
+app.use('/', productRoutes);
 app.use('/', ticketRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

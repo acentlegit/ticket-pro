@@ -8,6 +8,9 @@ import Agent from '../models/Agent.js';
 import Team from '../models/Team.js';
 import TicketHistory from '../models/TicketHistory.js';
 import jwt from 'jsonwebtoken';
+import Product from '../models/Product.js';
+import Account from '../models/Account.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -59,66 +62,72 @@ router.post('/:companyId/tickets', authenticateToken, requireRole(['admin', 'sup
       description,
       priority,
       channel,
-      category,
       dueDate,
-      contactId,
-      companyId,
+      departmentId,
       assignedAgentId,
       teamId,
-      productName,
+      productId,
       contactName,
-      companyName,
+      accountNameOrId,
       email,
       phone,
-      address,
-      domain
+      language,
+      classification,
+      attachments
     } = req.body;
+    const { companyId } = req.params;
     // Validate required fields
     if (!subject || !description) {
       return res.status(400).json({ message: 'Subject and description are required' });
     }
-    let company = await Company.findById(companyId);
-    if (!company && companyName) {
-      company = await Company.create({
-        companyName: companyName.trim(),
-        address: address ? { street: address } : null,
-        website: domain?.trim()
+  
+let account = await Account.findOne({
+      $or: [
+        { accountName: accountNameOrId },
+        { _id: mongoose.Types.ObjectId.isValid(accountNameOrId) ? accountNameOrId : null }
+      ]
+    });
+    // .populate('companyId', 'companyName website');
+    if (!account) {
+      account = await Account.create({
+        accountName: accountNameOrId,
+        companyId: companyId || null
       });
     }
-    let contact = await Contact.findOne({ email: email })
-      .populate('companyId', 'companyName website');
 
+    let contact = await Contact.findOne({ email: email });
+      // .populate('companyId', 'companyName website');
     if (!contact) {
       contact = await Contact.create({
-        fullName: contactName.trim(),
+        firstName: contactName,
         email: email?.trim(),
         phoneNumber: phone?.trim(),
-        companyId: company?._id || null
+        companyId: companyId || null,
+        accountId : account._id || null
       });
     }
-
-
-
-    // Create ticket data
     const ticketData = {
       subject: subject.trim(),
       description: description.trim(),
-      priority: priority || 'medium',
-      channel: channel || 'web',
-      category: category || null,
-      productName: productName || null,
+      priority: priority || 'medium',   // enum: Low, Medium, High, Urgent
+      channel: channel || 'web',        // enum: Phone, Email, Chat, Web, Other
+      departmentId: departmentId || null,
+      contactId: contact?._id || null,
+      accountId: account?._id || null,
+      productId: productId || null,
+      ticketOwner: assignedAgentId || teamId || null,   // one-to-one mapping
+      ticketOwnerModel: assignedAgentId ? 'agent' : (teamId ? 'Team' : null),
       dueDate: dueDate ? new Date(dueDate) : null,
-      contactId: contact._id || null,
-      companyId: company?._id || null,
-      assignedAgentId: assignedAgentId || null,
-      teamId: teamId || null,
+      status: 'open',
+      language: language || null,
+      classification: classification || null,
+      attachments: attachments || [],
       createdBy: req.user._id,
-      assignedTo: assignedAgentId || null
+      isActive: true,
+      companyId: companyId || null,
     };
-
     // Create the ticket
     const ticket = await Ticket.create(ticketData);
-
     // Create history entry
     await TicketHistory.create({
       ticketId: ticket._id,
@@ -132,12 +141,12 @@ router.post('/:companyId/tickets', authenticateToken, requireRole(['admin', 'sup
 
     // Populate the ticket with related data
     const populatedTicket = await Ticket.findById(ticket._id)
-      .populate('contactId', 'fullName email phoneNumber')
-      .populate('companyId', 'companyName website')
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('accountId', 'accountName')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email');
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email');
 
     res.status(201).json({
       message: 'Ticket created successfully',
@@ -156,20 +165,21 @@ router.post('/:companyId/tickets', authenticateToken, requireRole(['admin', 'sup
 router.get('/:companyId/tickets', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
   try {
     const { status, priority, assignedTo, page = 1, limit = 50 } = req.query;
+    const { companyId } = req.params;
 
     // Build filter query
-    const filter = {};
+    const filter = { companyId };
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (assignedTo) filter.assignedAgentId = assignedTo;
 
     const tickets = await Ticket.find(filter)
-      .populate('contactId', 'fullName email phoneNumber')
-      .populate('companyId', 'companyName website')
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('accountId', 'accountName')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email')
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -192,15 +202,15 @@ router.get('/:companyId/tickets', authenticateToken, requireRole(['admin', 'supe
 });
 
 // Get single ticket
-router.get('/:companyId/tickets/:id', authenticateToken, async (req, res) => {
+router.get('/tickets/:id', authenticateToken, async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id)
-      .populate('contactId', 'fullName email phoneNumber')
-      .populate('companyId', 'companyName website')
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('accountId', 'accountName')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email');
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email');
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
@@ -237,12 +247,12 @@ router.put('/:companyId/tickets/:id', authenticateToken, requireRole(['admin', '
       req.body,
       { new: true, runValidators: true }
     )
-      .populate('contactId', 'fullName email phoneNumber')
-      .populate('companyId', 'companyName website')
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('accountId', 'accountName')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email');
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email');
 
     res.json({
       message: 'Ticket updated successfully',
@@ -258,20 +268,51 @@ router.put('/:companyId/tickets/:id', authenticateToken, requireRole(['admin', '
 router.patch('/:companyId/tickets/:id', authenticateToken, requireRole(['admin', 'supervisor', 'agent']), async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id);
+    const { companyId } = req.params;
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    // Track changes for history
-    const changes = [];
-    for (const [key, value] of Object.entries(req.body)) {
-      if (ticket[key] !== value) {
-        changes.push({
-          field: key,
-          oldValue: ticket[key],
-          newValue: value
+    // Handle account name update
+    if (req.body.accountNameOrId) {
+      let account = await Account.findOne({
+        $or: [
+          { accountName: req.body.accountNameOrId },
+          { _id: mongoose.Types.ObjectId.isValid(req.body.accountNameOrId) ? req.body.accountNameOrId : null }
+        ]
+      });
+      
+      if (!account) {
+        account = await Account.create({
+          accountName: req.body.accountNameOrId,
+          companyId: companyId
         });
+      }
+      req.body.accountId = account._id;
+    }
+
+    // Handle contact updates
+    if (req.body.contactName || req.body.email || req.body.phone) {
+      let contact = await Contact.findOne({ email: req.body.email });
+      
+      if (!contact && req.body.email) {
+        contact = await Contact.create({
+          firstName: req.body.contactName,
+          email: req.body.email?.trim(),
+          phoneNumber: req.body.phone?.trim(),
+          companyId: companyId,
+          accountId: req.body.accountId || null
+        });
+      } else if (contact) {
+        await Contact.findByIdAndUpdate(contact._id, {
+          firstName: req.body.contactName,
+          phoneNumber: req.body.phone?.trim()
+        });
+      }
+      
+      if (contact) {
+        req.body.contactId = contact._id;
       }
     }
 
@@ -280,17 +321,101 @@ router.patch('/:companyId/tickets/:id', authenticateToken, requireRole(['admin',
       req.body.assignedTo = req.body.assignedAgentId;
     }
 
+    // Remove fields that shouldn't be directly updated
+    delete req.body.contactName;
+    delete req.body.accountNameOrId;
+    delete req.body.email;
+    delete req.body.phone;
+
     const updatedTicket = await Ticket.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     )
-      .populate('contactId', 'fullName email phoneNumber')
-      .populate('companyId', 'companyName website')
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('accountId', 'accountName')
       .populate('assignedAgentId', 'fullName email')
       .populate('teamId', 'teamName')
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email');
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email');
+
+    res.json({
+      message: 'Ticket updated successfully',
+      ticket: updatedTicket
+    });
+  } catch (error) {
+    console.error('Update ticket error:', error);
+    res.status(500).json({ message: 'Failed to update ticket', error: error.message });
+  }
+});
+          companyId: companyId
+        });
+      }
+      req.body.accountId = account._id;
+    }
+
+    // Handle contact updates
+    if (req.body.contactName || req.body.email || req.body.phone) {
+      let contact = await Contact.findOne({ email: req.body.email });
+      
+      if (!contact && req.body.email) {
+        contact = await Contact.create({
+          firstName: req.body.contactName,
+          email: req.body.email?.trim(),
+          phoneNumber: req.body.phone?.trim(),
+          companyId: companyId,
+          accountId: req.body.accountId || null
+        });
+      } else if (contact) {
+        await Contact.findByIdAndUpdate(contact._id, {
+          firstName: req.body.contactName,
+          phoneNumber: req.body.phone?.trim()
+        });
+      }
+      
+      if (contact) {
+        req.body.contactId = contact._id;
+      }
+    }
+
+    // Update assignedTo if assignedAgentId is provided
+    if (req.body.assignedAgentId) {
+      req.body.assignedTo = req.body.assignedAgentId;
+    }
+
+    // Remove fields that shouldn't be directly updated
+    delete req.body.contactName;
+    delete req.body.accountNameOrId;
+    delete req.body.email;
+    delete req.body.phone;
+
+    const updatedTicket = await Ticket.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    )
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('accountId', 'accountName')
+      .populate('assignedAgentId', 'fullName email')
+      .populate('teamId', 'teamName')
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email');
+
+    res.json({
+      message: 'Ticket updated successfully',
+      ticket: updatedTicket
+    });
+  } catch (error) {
+    console.error('Update ticket error:', error);
+    res.status(500).json({ message: 'Failed to update ticket', error: error.message });
+  }
+});ators: true }
+    )
+      .populate('contactId', 'firstName lastName email phoneNumber')
+      .populate('assignedAgentId', 'fullName email')
+      .populate('teamId', 'teamName')
+      .populate('createdBy', 'fullName email')
+      .populate('assignedTo', 'fullName email');
 
     // Create history entries for changes
     if (changes.length > 0) {

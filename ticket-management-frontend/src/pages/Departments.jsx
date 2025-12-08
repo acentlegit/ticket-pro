@@ -6,18 +6,20 @@ import api from '../services/api'
 const Departments = () => {
   const navigate = useNavigate()
   const [departments, setDepartments] = useState([])
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingDepartment, setEditingDepartment] = useState(null)
+  const [showAgentDropdown, setShowAgentDropdown] = useState(false)
   
   const [formData, setFormData] = useState({
     departmentName: '',
     displayName: '',
     logo: null,
     displayInHelpCenter: true,
-    associateAgent: '',
+    associateAgent: [],
     description: ''
   })
 
@@ -25,13 +27,24 @@ const Departments = () => {
 
   useEffect(() => {
     fetchDepartments()
+    fetchUsers()
   }, [])
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/auth/users')
+      setUsers(response.data.users || [])
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
+    }
+  }
 
   const fetchDepartments = async () => {
     try {
+      const companyId = localStorage.getItem('companyId')
       setLoading(true)
-      const response = await api.get('/departments')
-      setDepartments(response.data || [])
+      const response = await api.get(`/${companyId}/departments`)
+      setDepartments(response.data.departments || [])
     } catch (error) {
       console.error('Failed to fetch departments:', error)
     } finally {
@@ -81,7 +94,7 @@ const Departments = () => {
         displayName: department.displayName,
         logo: null,
         displayInHelpCenter: department.displayInHelpCenter,
-        associateAgent: department.associateAgent,
+        associateAgent: department.associateAgent || [],
         description: department.description
       })
       setLogoPreview(department.logoUrl)
@@ -92,7 +105,7 @@ const Departments = () => {
         displayName: '',
         logo: null,
         displayInHelpCenter: true,
-        associateAgent: '',
+        associateAgent: [],
         description: ''
       })
       setLogoPreview(null)
@@ -134,14 +147,14 @@ const Departments = () => {
       if (formData.logo) {
         formDataToSend.append('logo', formData.logo)
       }
-
+      const companyId = localStorage.getItem('companyId')
       if (editingDepartment) {
         await api.put(`/departments/${editingDepartment.id}`, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
         setSuccess('Department updated successfully!')
       } else {
-        await api.post('/departments', formDataToSend, {
+        await api.post(`/${companyId}/departments`, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
         setSuccess('Department created successfully!')
@@ -319,7 +332,11 @@ const Departments = () => {
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6" onClick={(e) => {
+              if (!e.target.closest('.relative')) {
+                setShowAgentDropdown(false)
+              }
+            }}>
               {/* Department Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -391,18 +408,49 @@ const Departments = () => {
               </div>
 
               {/* Associate Agent */}
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Associate Agent
                 </label>
-                <input
-                  type="text"
-                  name="associateAgent"
-                  value={formData.associateAgent}
-                  onChange={handleChange}
-                  placeholder="VB"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                <button
+                  type="button"
+                  onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-left bg-white flex items-center justify-between"
+                >
+                  <span className="text-gray-700">
+                    {formData.associateAgent.length > 0 
+                      ? `${formData.associateAgent.length} agent(s) selected`
+                      : 'Select agents'
+                    }
+                  </span>
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showAgentDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {users.map(user => (
+                      <label key={user._id} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.associateAgent.includes(user._id)}
+                          onChange={(e) => {
+                            const userId = user._id
+                            setFormData(prev => ({
+                              ...prev,
+                              associateAgent: e.target.checked
+                                ? [...prev.associateAgent, userId]
+                                : prev.associateAgent.filter(id => id !== userId)
+                            }))
+                          }}
+                          className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{user.fullName || user.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Description */}

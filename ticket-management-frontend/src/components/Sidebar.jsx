@@ -2,20 +2,23 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { X, Home, Ticket, Plus, Users, BarChart3, Settings, Building2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useParams } from 'react-router-dom'
 
 const Sidebar = ({ open, setOpen }) => {
   const { user } = useAuth()
+  const { companyId } = useParams()
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'All Tickets', href: '/tickets', icon: Ticket },
-    { name: 'Create Ticket', href: '/tickets/new', icon: Plus },
-    { name: 'Customers', href: '/customers', icon: Building2 },
+  const navigation = companyId ? [
+    { name: 'Dashboard', href: `/companies/${companyId}/dashboard`, icon: Home },
+    { name: 'All Tickets', href: `/companies/${companyId}/tickets`, icon: Ticket },
+    { name: 'Create Ticket', href: `/companies/${companyId}/tickets/new`, icon: Plus },
+    { name: 'Customers', href: `/companies/${companyId}/customers`, icon: Building2 },
     ...(user?.role === 'admin' || user?.role === 'supervisor' 
-      ? [{ name: 'User Management', href: '/users', icon: Users }] 
+      ? [{ name: 'User Management', href: `/companies/${companyId}/users`, icon: Users }] 
       : []),
-    { name: 'Reports', href: '/reports', icon: BarChart3 },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Settings', href: `/companies/${companyId}/settings`, icon: Settings },
+  ] : [
+    { name: 'Companies', href: '/companies', icon: Building2 },
   ]
 
   return (

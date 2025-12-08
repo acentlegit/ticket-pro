@@ -120,8 +120,8 @@ const CompanyBranding = () => {
       if (formData.faviconFile) {
         formDataToSend.append('favicon', formData.faviconFile)
       }
-
-      await api.post('/company/branding', formDataToSend, {
+      const companyId = localStorage.getItem('companyId');
+      await api.post(`/${companyId}/branding`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

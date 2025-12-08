@@ -15,9 +15,11 @@ const Customers = () => {
 
   const fetchData = async () => {
     try {
+      const companyId = localStorage.getItem('companyId')
       const [contactsRes, accountsRes] = await Promise.all([
-        api.get('/contacts'),
-        api.get('/accounts')
+        api.get(`${companyId}/contacts`),
+        api.get(`${companyId}/accounts`)
+        // api.get('/accounts')
       ])
       setContacts(contactsRes.data.contacts || [])
       setAccounts(accountsRes.data.accounts || [])
@@ -254,14 +256,14 @@ const Customers = () => {
                           {account.industry || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {account.website ? (
+                          {account.domain ? (
                             <a
-                              href={account.website}
+                              href={account.domain}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary-600 hover:text-primary-900"
                             >
-                              {account.website}
+                              {account.domain}
                             </a>
                           ) : (
                             '-'

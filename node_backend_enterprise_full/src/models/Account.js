@@ -7,14 +7,27 @@ const AccountSchema = new mongoose.Schema({
     trim: true,
     maxlength: [255, 'Account name cannot exceed 255 characters']
   },
-  address: {
+  email: {
     type: String,
-    trim: true
+    unique: true,
+    sparse: true, // Allow multiple null values
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
-  domain: {
+  phoneNumber: {
     type: String,
     trim: true,
-    maxlength: [255, 'Domain cannot exceed 255 characters'],
+    maxlength: [50, 'Phone number cannot exceed 50 characters']
+  },
+  accountOwner: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
+  website: {
+    type: String,
+    trim: true,
+    maxlength: [255, 'Website cannot exceed 255 characters'],
     lowercase: true
   },
   isActive: {
@@ -29,7 +42,7 @@ const AccountSchema = new mongoose.Schema({
 
 // Indexes
 AccountSchema.index({ accountName: 1 });
-AccountSchema.index({ domain: 1 });
+AccountSchema.index({ website: 1 });
 AccountSchema.index({ isActive: 1 });
 
 // Virtual for contacts count

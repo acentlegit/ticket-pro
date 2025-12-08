@@ -1,9 +1,12 @@
 import React from 'react'
-import { Menu, Bell, Search, User, LogOut } from 'lucide-react'
+import { Menu, Bell, Search, User, LogOut, Building2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useParams, useNavigate } from 'react-router-dom'
 
 const Header = ({ setSidebarOpen }) => {
   const { user, logout } = useAuth()
+  const { companyId } = useParams()
+  const navigate = useNavigate()
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -29,6 +32,23 @@ const Header = ({ setSidebarOpen }) => {
 
         {/* Right side */}
         <div className="flex items-center space-x-4">
+          {/* Company Info & Switch Company */}
+          {companyId && (
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 text-sm text-gray-700">
+                <Building2 className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">{JSON.parse(localStorage.getItem('company') || '{}').companyName || 'Company'}</span>
+              </div>
+              <button
+                onClick={() => navigate('/companies')}
+                className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                title="Switch Company"
+              >
+                <span className="text-sm font-medium">Switch Company</span>
+              </button>
+            </div>
+          )}
+
           {/* Notifications */}
           <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative">
             <Bell className="h-6 w-6" />

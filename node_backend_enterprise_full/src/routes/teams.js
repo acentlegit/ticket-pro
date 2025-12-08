@@ -41,7 +41,7 @@ router.get('/:companyId/teams', authenticateToken, async (req, res) => {
     }
 
     const teams = await Team.find(filter)
-      .populate('departmentHeadId', 'fullName email')
+      // .populate('departmentHeadId', 'fullName email')
       .sort({ teamName: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);

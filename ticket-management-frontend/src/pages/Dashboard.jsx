@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { 
   Ticket, 
   Clock, 
@@ -24,6 +24,7 @@ import api from '../services/api'
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const { companyId } = useParams()
   const [stats, setStats] = useState({
     openTickets: 0,
     onHoldTickets: 0,
@@ -74,7 +75,6 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const companyId = localStorage.getItem('companyId')
       const response = await api.get(`/${companyId}/tickets`)
       const tickets = response.data.tickets || []
       

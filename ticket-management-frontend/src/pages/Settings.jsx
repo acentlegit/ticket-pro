@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { 
   Building2, 
   Users, 
@@ -38,19 +38,20 @@ import {
 
 const Settings = () => {
   const navigate = useNavigate()
+  const { companyId } = useParams()
   const [searchTerm, setSearchTerm] = useState('')
 
   const handleItemClick = (itemName) => {
     if (itemName === 'Company') {
-      navigate('/company/profile')
+      navigate(`/companies/${companyId}/profile`)
     } else if (itemName === 'Rebranding') {
-      navigate('/company/branding')
+      navigate(`/companies/${companyId}/branding`)
     } else if (itemName === 'Departments') {
-      navigate('/departments')
+      navigate(`/companies/${companyId}/departments`)
     } else if (itemName === 'Products') {
-      navigate('/products')
+      navigate(`/companies/${companyId}/products`)
     } else if (itemName === 'Agents') {
-      navigate('/users/agents/new')
+      navigate(`/companies/${companyId}/users/agents/new`)
     }
     // Add more navigation cases as needed
   }
@@ -65,7 +66,6 @@ const Settings = () => {
         { name: 'Holiday Lists', icon: Calendar, description: 'Manage holidays and closures' },
         { name: 'Departments', icon: MapPin, description: 'Organize your team structure' },
         { name: 'Customer Happiness', icon: Target, description: 'Customer satisfaction settings' },
-        { name: 'Gamescope', icon: Gamepad2, description: 'Gamification features' },
         { name: 'Products', icon: Package, description: 'Product catalog management' }
       ]
     },
@@ -91,55 +91,6 @@ const Settings = () => {
         { name: 'Social', icon: Globe, description: 'Social media channels' },
         { name: 'Web Forms', icon: FileText, description: 'Web form builder' },
         { name: 'Community', icon: Users, description: 'Community forums' }
-      ]
-    },
-    {
-      title: 'SELF SERVICE',
-      items: [
-        { name: 'Guided Conversations', icon: MessageSquare, description: 'Interactive help flows' },
-        { name: 'ASAP', icon: Zap, description: 'Instant answer system' }
-      ]
-    },
-    {
-      title: 'CUSTOMIZATION',
-      items: [
-        { name: 'Buttons', icon: Sliders, description: 'Custom button configuration' },
-        { name: 'Modules and Tabs', icon: Package, description: 'Interface customization' },
-        { name: 'Layouts and Fields', icon: Sliders, description: 'Form and layout design' },
-        { name: 'General Settings', icon: SettingsIcon, description: 'General preferences' },
-        { name: 'Notifications', icon: Bell, description: 'Notification settings' },
-        { name: 'Languages', icon: Languages, description: 'Multi-language support' }
-      ]
-    },
-    {
-      title: 'AUTOMATION',
-      items: [
-        { name: 'Assignment Rules', icon: Workflow, description: 'Automatic ticket assignment' },
-        { name: 'Workflows', icon: Workflow, description: 'Process automation' },
-        { name: 'Blueprint', icon: FileText, description: 'Process blueprints' },
-        { name: 'Macros', icon: Zap, description: 'Quick action macros' },
-        { name: 'Service Level Agreements', icon: Activity, description: 'SLA management' },
-        { name: 'Supervisor Rules', icon: Shield, description: 'Escalation rules' }
-      ]
-    },
-    {
-      title: 'DATA ADMINISTRATION',
-      items: [
-        { name: 'Sandbox', icon: Package, description: 'Testing environment' },
-        { name: 'Import', icon: Upload, description: 'Data import tools' },
-        { name: 'Export', icon: Download, description: 'Data export tools' },
-        { name: 'Data Backup', icon: Database, description: 'Backup management' },
-        { name: 'Zwtch(Data Migration)', icon: RotateCcw, description: 'Migration tools' },
-        { name: 'Bulk Action Log', icon: Activity, description: 'Bulk operation history' }
-      ]
-    },
-    {
-      title: 'INTEGRATIONS',
-      items: [
-        { name: 'Marketplace', icon: Package, description: 'Third-party integrations' },
-        { name: 'Ticket Tracker', icon: Zap, description: 'Ticket Tracker suite integration' },
-        { name: 'Microsoft', icon: Package, description: 'Microsoft integrations' },
-        { name: 'Others', icon: Globe, description: 'Other integrations' }
       ]
     }
   ]

@@ -8,6 +8,17 @@ const TicketSchema = new mongoose.Schema({
     trim: true,
     maxlength: [255, 'Subject cannot exceed 255 characters']
   },
+  departmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department'
+  },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  },
+classification:{
+type: String,
+},
   description: {
     type: String,
     required: [true, 'Description is required'],
@@ -24,10 +35,6 @@ const TicketSchema = new mongoose.Schema({
   assignedAgentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  },
-  productName: {
-    type: String,
-    trim: true
   },
   teamId: {
     type: mongoose.Schema.Types.ObjectId,

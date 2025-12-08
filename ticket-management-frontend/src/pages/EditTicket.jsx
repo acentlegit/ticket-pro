@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, User, Building2, Phone, Mail, Upload } from 'lucide-react'
+import { ArrowLeft, Save, User, Building2, Phone, Mail, Upload, Search, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../services/api'
 
@@ -12,6 +12,14 @@ const EditTicket = () => {
   const [fetchingTicket, setFetchingTicket] = useState(true)
   const [error, setError] = useState('')
   const [users, setUsers] = useState([])
+  const [departments, setDepartments] = useState([])
+  const [products, setProducts] = useState([])
+  const [accounts, setAccounts] = useState([])
+  const [contacts, setContacts] = useState([])
+  const [showContactModal, setShowContactModal] = useState(false)
+  const [showAccountModal, setShowAccountModal] = useState(false)
+  const [contactSearchTerm, setContactSearchTerm] = useState('')
+  const [accountSearchTerm, setAccountSearchTerm] = useState('')
   
   const [formData, setFormData] = useState({
     contactName: '',
@@ -20,19 +28,25 @@ const EditTicket = () => {
     phone: '',
     subject: '',
     description: '',
-    productName: '',
     dueDate: '',
     priority: 'medium',
     channel: 'web',
     classification: '',
+    language: 'English',
     status: 'open',
-    assignedAgentId: ''
+    assignedAgentId: '',
+    departmentId: '',
+    productId: ''
   })
 
   useEffect(() => {
     if (id) {
       fetchTicketData()
       fetchUsers()
+      fetchDepartments()
+      fetchProducts()
+      fetchAccounts()
+      fetchContacts()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
@@ -58,19 +72,21 @@ const EditTicket = () => {
       }
 
       const newFormData = {
-        contactName: ticket.contactId?.fullName || '',
+        contactName: ticket.contactId?.firstName || '',
         accountName: ticket.accountId?.accountName || '',
         email: ticket.contactId?.email || '',
         phone: ticket.contactId?.phoneNumber || '',
         subject: ticket.subject || '',
         description: ticket.description || '',
-        productName: ticket.productName || '',
         dueDate: formatDateTimeLocal(ticket.dueDate),
         priority: ticket.priority || 'medium',
         channel: ticket.channel || 'web',
-        classification: ticket.category || '',
+        classification: ticket.classification || '',
+        language: ticket.language || 'English',
         status: ticket.status || 'open',
-        assignedAgentId: ticket.assignedAgentId?._id || ticket.assignedAgentId || ''
+        assignedAgentId: ticket.assignedAgentId?._id || ticket.assignedAgentId || '',
+        departmentId: ticket.departmentId || '',
+        productId: ticket.productId || ''
       }
       
       console.log('Setting form data:', newFormData)
@@ -93,6 +109,46 @@ const EditTicket = () => {
     }
   }
 
+  const fetchDepartments = async () => {
+    try {
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/departments`)
+      setDepartments(response.data.departments || [])
+    } catch (error) {
+      console.error('Failed to fetch departments:', error)
+    }
+  }
+
+  const fetchProducts = async () => {
+    try {
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/products`)
+      setProducts(response.data.products || [])
+    } catch (error) {
+      console.error('Failed to fetch products:', error)
+    }
+  }
+
+  const fetchAccounts = async () => {
+    try {
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/accounts`)
+      setAccounts(response.data.accounts || [])
+    } catch (error) {
+      console.error('Failed to fetch accounts:', error)
+    }
+  }
+
+  const fetchContacts = async () => {
+    try {
+      const companyId = localStorage.getItem('companyId')
+      const response = await api.get(`/${companyId}/contacts`)
+      setContacts(response.data.contacts || [])
+    } catch (error) {
+      console.error('Failed to fetch contacts:', error)
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -107,20 +163,27 @@ const EditTicket = () => {
     setLoading(true)
 
     try {
+      const companyId = localStorage.getItem('companyId')
       const ticketData = {
         subject: formData.subject,
         description: formData.description,
         priority: formData.priority,
         channel: formData.channel,
-        category: formData.classification,
         status: formData.status,
+        classification: formData.classification,
+        language: formData.language,
         dueDate: formData.dueDate || null,
+        departmentId: formData.departmentId || null,
+        productId: formData.productId || null,
         assignedAgentId: formData.assignedAgentId || null,
-        productName: formData.productName
+        contactName: formData.contactName,
+        accountNameOrId: formData.accountName,
+        email: formData.email,
+        phone: formData.phone
       }
 
-      await api.patch(`/tickets/${id}`, ticketData)
-      navigate(`/tickets/${id}`)
+      await api.patch(`/${companyId}/tickets/${id}`, ticketData)
+      navigate(`/companies/${companyId}/tickets/${id}`)
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to update ticket')
     } finally {
@@ -173,7 +236,7 @@ const EditTicket = () => {
                 {/* Contact Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Name
+                    Contact Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -181,10 +244,17 @@ const EditTicket = () => {
                       name="contactName"
                       value={formData.contactName}
                       onChange={handleChange}
-                      className="input-field pr-10 bg-gray-50"
-                      placeholder="Contact name"
-                      readOnly
+                      className="input-field pr-16"
+                      placeholder="Enter contact name"
+                      required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowContactModal(true)}
+                      className="absolute right-8 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                    >
+                      <Search className="h-4 w-4" />
+                    </button>
                     <User className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
                 </div>
@@ -200,18 +270,23 @@ const EditTicket = () => {
                       name="accountName"
                       value={formData.accountName}
                       onChange={handleChange}
-                      className="input-field pr-10 bg-gray-50"
-                      placeholder="Account name"
-                      readOnly
+                      className="input-field pr-10"
+                      placeholder="Enter account name"
                     />
-                    <Building2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <button
+                      type="button"
+                      onClick={() => setShowAccountModal(true)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                    >
+                      <Search className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                    Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -219,9 +294,9 @@ const EditTicket = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="input-field pr-10 bg-gray-50"
-                      placeholder="Email address"
-                      readOnly
+                      className="input-field pr-10"
+                      placeholder="Enter email address"
+                      required
                     />
                     <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
@@ -238,9 +313,8 @@ const EditTicket = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="input-field pr-10 bg-gray-50"
-                      placeholder="Phone number"
-                      readOnly
+                      className="input-field pr-10"
+                      placeholder="Enter phone number"
                     />
                     <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
@@ -301,19 +375,44 @@ const EditTicket = () => {
                   </div>
                 </div>
 
-                {/* Product Name */}
+                {/* Department */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Name
+                    Department
                   </label>
-                  <input
-                    type="text"
-                    name="productName"
-                    value={formData.productName}
+                  <select
+                    name="departmentId"
+                    value={formData.departmentId}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="Enter product name"
-                  />
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept._id} value={dept._id}>
+                        {dept.departmentName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Product */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product
+                  </label>
+                  <select
+                    name="productId"
+                    value={formData.productId}
+                    onChange={handleChange}
+                    className="input-field"
+                  >
+                    <option value="">Select Product</option>
+                    {products.map(product => (
+                      <option key={product._id} value={product._id}>
+                        {product.productName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -335,6 +434,24 @@ const EditTicket = () => {
                     onChange={handleChange}
                     className="input-field"
                   />
+                </div>
+
+                {/* Language */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Language
+                  </label>
+                  <select
+                    name="language"
+                    value={formData.language}
+                    onChange={handleChange}
+                    className="input-field"
+                  >
+                    <option value="English">English</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                  </select>
                 </div>
 
                 {/* Status */}
@@ -395,7 +512,7 @@ const EditTicket = () => {
                 </div>
 
                 {/* Classification */}
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Classification
                   </label>
@@ -478,6 +595,152 @@ const EditTicket = () => {
           </div>
         </div>
       </div>
+
+      {/* Contact Selection Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Select Contact</h3>
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="mt-4 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  value={contactSearchTerm}
+                  onChange={(e) => setContactSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-96">
+              {contacts.filter(contact =>
+                contact.firstName?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                contact.email?.toLowerCase().includes(contactSearchTerm.toLowerCase())
+              ).length > 0 ? (
+                <div className="space-y-2">
+                  {contacts.filter(contact =>
+                    contact.firstName?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
+                    contact.email?.toLowerCase().includes(contactSearchTerm.toLowerCase())
+                  ).map((contact) => (
+                    <button
+                      key={contact._id}
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          contactName: contact.firstName || '',
+                          email: contact.email || '',
+                          phone: contact.phoneNumber || '',
+                          accountName: contact.accountId?.accountName || ''
+                        }))
+                        setShowContactModal(false)
+                      }}
+                      className="w-full text-left p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-primary-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-gray-900">{contact.firstName}</h4>
+                          <p className="text-xs text-gray-500">{contact.email}</p>
+                          {contact.accountId && (
+                            <p className="text-xs text-gray-400">{contact.accountId.accountName}</p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <User className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No contacts found</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Selection Modal */}
+      {showAccountModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Select Account</h3>
+                <button
+                  onClick={() => setShowAccountModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="mt-4 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search accounts..."
+                  value={accountSearchTerm}
+                  onChange={(e) => setAccountSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-96">
+              {accounts.filter(account =>
+                account.accountName?.toLowerCase().includes(accountSearchTerm.toLowerCase())
+              ).length > 0 ? (
+                <div className="space-y-2">
+                  {accounts.filter(account =>
+                    account.accountName?.toLowerCase().includes(accountSearchTerm.toLowerCase())
+                  ).map((account) => (
+                    <button
+                      key={account._id}
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          accountName: account.accountName
+                        }))
+                        setShowAccountModal(false)
+                      }}
+                      className="w-full text-left p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-gray-900">{account.accountName}</h4>
+                          <p className="text-xs text-gray-500">{account.industry || 'No industry specified'}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No accounts found</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

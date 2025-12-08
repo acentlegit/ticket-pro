@@ -1,6 +1,7 @@
 
 import express from 'express';
 import User from '../models/User.js';
+import Invitation from '../models/Invitation.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -59,7 +60,7 @@ router.post('/register', async (req, res) => {
 
     const hash = await bcrypt.hash(password, 12);
     const user = await User.create({
-      name,
+      fullName:name,
       email,
       password: hash,
       role: role || 'customer',
@@ -126,7 +127,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         _id: user._id,
-        name: user.name,
+        fullName: user?.fullName,
         email: user.email,
         role: user.role,
         lastLogin: user.lastLogin,
@@ -146,7 +147,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     res.json({
       user: {
         _id: req.user._id,
-        name: req.user.name,
+        name: req.user.fullName,
         email: req.user.email,
         role: req.user.role,
         lastLogin: req.user.lastLogin,
@@ -179,6 +180,123 @@ router.post('/logout', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({ message: 'Logout failed' });
+  }
+});
+
+// Get invitation details
+router.get('/invitation/:token', async (req, res) => {
+  try {
+    const invitation = await Invitation.findOne({ 
+      token: req.params.token,
+      status: 'pending'
+    });
+
+    if (!invitation) {
+      return res.status(404).json({ message: 'Invitation not found or expired' });
+    }
+
+    if (new Date() > invitation.expiresAt) {
+      invitation.status = 'expired';
+      await invitation.save();
+      return res.status(400).json({ message: 'Invitation has expired' });
+    }
+
+    res.json({ invitation });
+  } catch (error) {
+    console.error('Get invitation error:', error);
+    res.status(500).json({ message: 'Failed to fetch invitation' });
+  }
+});
+
+// Accept invitation and register
+router.post('/invitation/accept', async (req, res) => {
+  try {
+    const { token, firstName, lastName, password, country, state } = req.body;
+
+    const invitation = await Invitation.findOne({ 
+      token,
+      status: 'pending'
+    });
+
+    if (!invitation) {
+      return res.status(404).json({ message: 'Invitation not found' });
+    }
+
+    if (new Date() > invitation.expiresAt) {
+      invitation.status = 'expired';
+      await invitation.save();
+      return res.status(400).json({ message: 'Invitation has expired' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 12);
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: invitation.recipientEmail });
+    
+    if (existingUser && existingUser.status === 'active') {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    let user;
+    if (existingUser && existingUser.status === 'inactive') {
+      // Update existing inactive user
+      user = await User.findOneAndUpdate(
+        { email: invitation.recipientEmail },
+        {
+          fullName: `${firstName} ${lastName}`,
+          password: hashedPassword,
+          status: 'active'
+        },
+        { new: true }
+      );
+    } else {
+      // Create new user if doesn't exist
+      user = await User.create({
+        fullName: `${firstName} ${lastName}`,
+        email: invitation.recipientEmail,
+        password: hashedPassword,
+        role: 'agent',
+        companyId: invitation.companyId,
+        status: 'active'
+      });
+    }
+
+    // Update invitation status
+    invitation.status = 'accepted';
+    await invitation.save();
+
+    res.status(201).json({
+      message: 'Registration successful',
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Accept invitation error:', error);
+    res.status(500).json({ message: 'Failed to accept invitation', error: error.message });
+  }
+});
+
+// Reject invitation
+router.post('/invitation/reject', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const invitation = await Invitation.findOne({ token });
+
+    if (!invitation) {
+      return res.status(404).json({ message: 'Invitation not found' });
+    }
+
+    invitation.status = 'rejected';
+    await invitation.save();
+
+    res.json({ message: 'Invitation rejected successfully' });
+  } catch (error) {
+    console.error('Reject invitation error:', error);
+    res.status(500).json({ message: 'Failed to reject invitation' });
   }
 });
 

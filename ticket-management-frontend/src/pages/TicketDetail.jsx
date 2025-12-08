@@ -96,7 +96,7 @@ const TicketDetail = () => {
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">{error}</div>
         <button
-          onClick={() => navigate('/tickets')}
+          onClick={() => navigate(-1)}
           className="btn-primary"
         >
           Back to Tickets
@@ -111,7 +111,7 @@ const TicketDetail = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => navigate('/tickets')}
+            onClick={() => navigate(-1)}
             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
           >
             <ArrowLeft className="h-6 w-6" />

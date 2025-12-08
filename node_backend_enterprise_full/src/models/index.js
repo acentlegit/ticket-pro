@@ -18,7 +18,7 @@ export const populateTicket = {
   path: 'contactId accountId assignedAgentId teamId slaId tags createdBy assignedTo',
   populate: [
     { path: 'contactId', select: 'fullName email phoneNumber' },
-    { path: 'accountId', select: 'accountName domain' },
+    { path: 'accountId', select: 'accountName website' },
     { path: 'assignedAgentId', select: 'fullName email status' },
     { path: 'teamId', select: 'teamName' },
     { path: 'slaId', select: 'name firstResponseTimeMinutes resolutionTimeMinutes' },

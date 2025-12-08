@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { Input, TextArea, Select, Button } from '../components/ui'
 import api from '../services/api'
 
 const AddProduct = () => {
   const navigate = useNavigate()
+  const { companyId } = useParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -33,8 +34,8 @@ const AddProduct = () => {
     setLoading(true)
 
     try {
-      await api.post('/products', formData)
-      navigate('/products')
+      await api.post(`/${companyId}/products`, formData)
+      navigate(`/companies/${companyId}/products`)
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to create product')
     } finally {
@@ -43,7 +44,7 @@ const AddProduct = () => {
   }
 
   const handleCancel = () => {
-    navigate('/products')
+    navigate(`/companies/${companyId}/products`)
   }
 
   return (

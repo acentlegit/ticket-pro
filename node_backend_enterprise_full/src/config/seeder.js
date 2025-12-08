@@ -9,31 +9,31 @@ export const seedInitialData = async () => {
     await seedAllModels();
 
     // Check if any users exist
-    const userCount = await User.countDocuments();
+    // const userCount = await User.countDocuments();
 
-    if (userCount === 0) {
-      console.log('No users found. Creating initial admin user...');
+    // if (userCount === 0) {
+    //   console.log('No users found. Creating initial admin user...');
 
-      // Create default admin user
-      const hashedPassword = await bcrypt.hash('admin123', 12);
+    //   // Create default admin user
+    //   const hashedPassword = await bcrypt.hash('admin123', 12);
 
-      const adminUser = new User({
-        name: 'System Administrator',
-        email: 'admin@enterprise.com',
-        password: hashedPassword,
-        role: 'admin',
-        isActive: true,
-        phone: '1234567890'
-      });
+    //   const adminUser = new User({
+    //     name: 'System Administrator',
+    //     email: 'admin@enterprise.com',
+    //     password: hashedPassword,
+    //     role: 'admin',
+    //     isActive: true,
+    //     phone: '1234567890'
+    //   });
 
-      await adminUser.save();
-      console.log('✓ Initial admin user created successfully');
-      console.log('  Email: admin@enterprise.com');
-      console.log('  Password: admin123');
-      console.log('  Please change the password after first login!');
-    } else {
-      console.log(`Database already contains ${userCount} users. Skipping user seeding.`);
-    }
+    //   await adminUser.save();
+    //   console.log('✓ Initial admin user created successfully');
+    //   console.log('  Email: admin@enterprise.com');
+    //   console.log('  Password: admin123');
+    //   console.log('  Please change the password after first login!');
+    // } else {
+    //   console.log(`Database already contains ${userCount} users. Skipping user seeding.`);
+    // }
   } catch (error) {
     console.error('Error seeding initial data:', error);
   }

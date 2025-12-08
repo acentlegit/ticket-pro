@@ -54,8 +54,8 @@ const UserManagement = () => {
   }
 
   const filteredUsers = users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (u.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (u.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     const matchesRole = roleFilter === 'all' || u.role === roleFilter
     
     return matchesSearch && matchesRole
@@ -179,12 +179,12 @@ const UserManagement = () => {
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
                           <span className="text-white font-medium">
-                            {u.name.charAt(0).toUpperCase()}
+                            {u.fullName.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {u.name}
+                            {u.fullName}
                           </div>
                           <div className="text-sm text-gray-500">
                             {u.email}

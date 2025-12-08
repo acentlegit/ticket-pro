@@ -1,12 +1,11 @@
-
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
-  name: {
+  fullName: {   // covers both "name" and "fullName"
     type: String,
-    required: [true, 'Name is required'],
+    required: [true, 'Full name is required'],
     trim: true,
-    maxlength: [100, 'Name cannot exceed 100 characters']
+    maxlength: [255, 'Full name cannot exceed 255 characters']
   },
   email: {
     type: String,
@@ -16,17 +15,16 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
-  phone: {
+  phoneNumber: {   // covers both "phone" and "phoneNumber"
     type: String,
-    required: [true, 'Phone number is required'],
-    trim: true
+    trim: true,
+    maxlength: [50, 'Phone number cannot exceed 50 characters']
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters']
   },
-  role: {
+  role: {   // unified role handling
     type: String,
     enum: {
       values: ['admin', 'supervisor', 'agent', 'customer'],
@@ -34,16 +32,45 @@ const UserSchema = new mongoose.Schema({
     },
     default: 'customer'
   },
+  roleId: {   // optional reference for agent-specific role
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role'
+  },
+  teamId: {   // optional reference for agent-specific team
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
+  },
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Company'
+    ref: 'Company',
+    // required: [true, 'Company is required']
   },
-  isActive: {
-    type: Boolean,
-    default: true
+  status: {   // agent-style status
+    type: String,
+    enum: {
+      values: ['active', 'inactive', 'suspended'],
+      message: 'Status must be one of: active, inactive, suspended'
+    },
+    default: 'active'
+  },
+  mobile: {
+    type: String
+  },
+  channel: {
+    type: String
+  },
+  fax: {
+    type: String
+  },
+  avatar: {
+    type: String
   },
   lastLogin: {
     type: Date
+  },
+  isActive: {   // general user active flag
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true,
@@ -51,11 +78,22 @@ const UserSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes for better query performance
+// Indexes
 UserSchema.index({ email: 1 });
 UserSchema.index({ role: 1 });
+UserSchema.index({ roleId: 1 });
+UserSchema.index({ teamId: 1 });
+UserSchema.index({ status: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ createdAt: -1 });
+
+// Virtual for assigned tickets count (agent-specific)
+UserSchema.virtual('assignedTicketsCount', {
+  ref: 'Ticket',
+  localField: '_id',
+  foreignField: 'assignedAgentId',
+  count: true
+});
 
 // Remove password from JSON output
 UserSchema.methods.toJSON = function () {

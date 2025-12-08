@@ -43,7 +43,8 @@ const Register = () => {
         name: formData.fullName,
         email: formData.email,
         password: formData.password,
-        phone: `${formData.countryCode}${formData.phoneNumber}`
+        phone: `${formData.countryCode}${formData.phoneNumber}`,
+        role: 'admin'
       })
 
       // Registration successful, redirect to login

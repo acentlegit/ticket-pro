@@ -39,7 +39,7 @@ router.get('/:companyId/accounts', authenticateToken, async (req, res) => {
     if (search) {
       filter.$or = [
         { accountName: { $regex: search, $options: 'i' } },
-        { domain: { $regex: search, $options: 'i' } }
+        { website: { $regex: search, $options: 'i' } }
       ];
     }
 
@@ -68,7 +68,7 @@ router.get('/:companyId/accounts', authenticateToken, async (req, res) => {
 // Create account
 router.post('/:companyId/accounts', authenticateToken, async (req, res) => {
   try {
-    const { accountName, address, domain } = req.body;
+    const { accountName, address, website } = req.body;
 
     if (!accountName) {
       return res.status(400).json({ message: 'Account name is required' });
@@ -77,7 +77,7 @@ router.post('/:companyId/accounts', authenticateToken, async (req, res) => {
     const account = await Account.create({
       accountName: accountName.trim(),
       address: address?.trim(),
-      domain: domain?.trim()
+      website: website?.trim()
     });
 
     res.status(201).json({

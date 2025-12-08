@@ -235,17 +235,17 @@ export const seedAccounts = async () => {
       {
         accountName: 'Acme Corporation',
         address: '123 Business St, Enterprise City, EC 12345',
-        domain: 'acme.com'
+        website: 'acme.com'
       },
       {
         accountName: 'TechStart Inc',
         address: '456 Innovation Ave, Startup Valley, SV 67890',
-        domain: 'techstart.io'
+        website: 'techstart.io'
       },
       {
         accountName: 'Global Solutions Ltd',
         address: '789 Corporate Blvd, Business District, BD 54321',
-        domain: 'globalsolutions.com'
+        website: 'globalsolutions.com'
       }
     ];
 
