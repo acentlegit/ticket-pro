@@ -131,12 +131,12 @@ const Settings = () => {
   })).filter(category => category.items.length > 0)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-gray-900">Setup</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Setup</h1>
             <button className="p-2 text-gray-400 hover:text-gray-600">
               <SettingsIcon className="h-5 w-5" />
             </button>
@@ -151,7 +151,7 @@ const Settings = () => {
               placeholder="Search setup and configuration..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-96"
+              className="input-field pl-9 pr-3 py-2 text-sm w-96"
             />
           </div>
         </div>
@@ -171,17 +171,17 @@ const Settings = () => {
                     <button
                       key={itemIndex}
                       onClick={() => handleItemClick(item.name)}
-                      className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-sm transition-all duration-200 group"
+                      className="w-full text-left p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-300 hover:shadow-sm transition-all duration-200 group"
                     >
                       <div className="flex items-start space-x-3">
-                        <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary-50 transition-colors">
-                          <item.icon className="h-5 w-5 text-gray-600 group-hover:text-primary-600" />
+                        <div className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 transition-colors">
+                          <item.icon className="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-gray-900 group-hover:text-primary-700">
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary-700 dark:group-hover:text-primary-400">
                             {item.name}
                           </h3>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
                             {item.description}
                           </p>
                         </div>
@@ -195,24 +195,24 @@ const Settings = () => {
         </div>
 
         {/* Product Updates Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-6">
+        <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center space-x-2 mb-6">
             <TrendingUp className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Product Updates</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Product Updates</h2>
           </div>
           
           <div className="space-y-6">
             {productUpdates.map((update, index) => (
-              <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
+              <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
                 <div className="flex items-start space-x-3 mb-3">
                   <div className="p-2 bg-primary-50 rounded-lg">
                     <update.icon className="h-4 w-4 text-primary-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
                       {update.title}
                     </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
                       {update.description}
                     </p>
                     <button className="text-xs text-primary-600 hover:text-primary-700 font-medium">

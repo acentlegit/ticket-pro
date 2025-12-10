@@ -200,19 +200,19 @@ const EditTicket = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             >
               <ArrowLeft className="h-6 w-6" />
             </button>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Edit Ticket</h1>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Edit Ticket</h1>
             </div>
           </div>
         </div>
@@ -229,8 +229,8 @@ const EditTicket = () => {
             )}
 
             {/* Contact Information Section */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Contact Information</h2>
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Contact Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Contact Name */}
@@ -418,8 +418,8 @@ const EditTicket = () => {
             </div>
 
             {/* Additional Information Section */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Additional Information</h2>
+            <div className="card p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Additional Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Due Date */}
@@ -556,13 +556,13 @@ const EditTicket = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-6">
+        <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-6">
           <div className="space-y-6">
             {/* Contact Information Card */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact Information</h3>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Contact Information</h3>
               {formData.contactName ? (
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                       <User className="h-5 w-5 text-primary-600" />
@@ -586,9 +586,9 @@ const EditTicket = () => {
                   )}
                 </div>
               ) : (
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <User className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">No Contact Information</p>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-center">
+                  <User className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">No Contact Information</p>
                 </div>
               )}
             </div>
@@ -599,10 +599,10 @@ const EditTicket = () => {
       {/* Contact Selection Modal */}
       {showContactModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Select Contact</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Contact</h3>
                 <button
                   onClick={() => setShowContactModal(false)}
                   className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
@@ -676,10 +676,10 @@ const EditTicket = () => {
       {/* Account Selection Modal */}
       {showAccountModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Select Account</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Account</h3>
                 <button
                   onClick={() => setShowAccountModal(false)}
                   className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"

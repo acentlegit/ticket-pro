@@ -28,6 +28,10 @@ type: String,
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Contact'
   },
+  accountId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account'
+  },
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company'

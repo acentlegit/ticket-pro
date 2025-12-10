@@ -121,21 +121,21 @@ const TicketList = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               All Tickets ({filteredTickets.length})
             </h1>
             <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
+              <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <Filter className="h-4 w-4" />
               </button>
-              <span className="text-gray-300">|</span>
-              <button className="text-sm text-gray-600 hover:text-gray-900">Total Count</button>
-              <button className="text-sm text-gray-600 hover:text-gray-900">Table View</button>
+              <span className="text-gray-300 dark:text-gray-600">|</span>
+              <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Total Count</button>
+              <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Table View</button>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -146,7 +146,7 @@ const TicketList = () => {
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
+                className="input-field pl-9 pr-3 py-2 text-sm w-64"
               />
             </div>
             <Link
@@ -161,12 +161,12 @@ const TicketList = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
         <div className="flex items-center space-x-4">
           <select
             value={activeView}
             onChange={(e) => setActiveView(e.target.value)}
-            className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="input-field text-sm px-3 py-1"
           >
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -178,7 +178,7 @@ const TicketList = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="input-field text-sm px-3 py-1"
           >
             <option value="all">All Priority</option>
             {priorityCategories.map((category) => (
@@ -191,48 +191,48 @@ const TicketList = () => {
       </div>
 
       {/* Tickets Table */}
-      <div className="bg-white">
+      <div className="bg-white dark:bg-gray-800">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                  <input type="checkbox" className="rounded border-gray-300" />
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-12">
+                  <input type="checkbox" className="rounded border-gray-300 dark:border-gray-600" />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Ticket ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Subject
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Contact Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Account Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Customer Responded Time
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Due Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredTickets.length > 0 ? (
                 filteredTickets.map((ticket, index) => (
                   <tr 
                     key={ticket._id} 
-                    className="hover:bg-gray-50 relative group"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 relative group"
                     onMouseEnter={() => setHoveredTicket(ticket._id)}
                     onMouseLeave={() => setHoveredTicket(null)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <input type="checkbox" className="rounded border-gray-300" />
+                      <input type="checkbox" className="rounded border-gray-300 dark:border-gray-600" />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
@@ -247,19 +247,19 @@ const TicketList = () => {
                         {getStatusIcon(ticket.status)}
                         <Link
                           to={`/companies/${companyId}/tickets/${ticket._id}`}
-                          className="text-sm font-medium text-gray-900 hover:text-primary-600 max-w-xs truncate"
+                          className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 max-w-xs truncate"
                         >
                           {ticket.subject}
                         </Link>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {ticket.contactId?.firstName || ticket.createdBy?.name || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {ticket.accountId?.accountName || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {ticket.customerRespondedTime 
                         ? new Date(ticket.customerRespondedTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
                         : '-'
@@ -290,19 +290,19 @@ const TicketList = () => {
                       
                       {/* Hover Actions */}
                       {hoveredTicket === ticket._id && (
-                        <div className="absolute right-6 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 bg-white shadow-lg border border-gray-200 rounded-lg px-2 py-1 z-10">
+                        <div className="absolute right-6 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 z-10">
                           <button
                             onClick={(e) => handleMarkAsRead(ticket._id, e)}
-                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                             title="Mark as Read"
                           >
                             <MailOpen className="h-4 w-4" />
                             <span>Mark as Read</span>
                           </button>
-                          <div className="h-4 w-px bg-gray-300"></div>
+                          <div className="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
                           <button
                             onClick={(e) => handleEdit(ticket._id, e)}
-                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded transition-colors"
                             title="Edit Ticket"
                           >
                             <Edit className="h-4 w-4" />
@@ -316,8 +316,8 @@ const TicketList = () => {
               ) : (
                 <tr>
                   <td colSpan="8" className="px-6 py-12 text-center">
-                    <div className="text-gray-500">
-                      <Ticket className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <div className="text-gray-500 dark:text-gray-400">
+                      <Ticket className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                       <p className="text-lg font-medium">No tickets found</p>
                       <p className="text-sm">Try adjusting your search or filters</p>
                     </div>

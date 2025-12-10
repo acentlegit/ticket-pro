@@ -97,8 +97,8 @@ const UserManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users and their roles</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">User Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage system users and their roles</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
@@ -238,9 +238,9 @@ const UserManagement = () => {
       {/* Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Add New User</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add New User</h3>
             </div>
             
             <form onSubmit={handleCreateUser} className="p-6 space-y-4">

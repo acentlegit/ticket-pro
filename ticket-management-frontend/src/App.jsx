@@ -26,8 +26,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AuthProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -73,8 +73,8 @@ function App() {
 
           </Route>
         </Routes>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
   )
 }
 

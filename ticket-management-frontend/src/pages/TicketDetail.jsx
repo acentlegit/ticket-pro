@@ -112,13 +112,13 @@ const TicketDetail = () => {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
           >
             <ArrowLeft className="h-6 w-6" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Ticket Details</h1>
-            <p className="text-gray-600">#{ticket?._id?.slice(-8)}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Ticket Details</h1>
+            <p className="text-gray-600 dark:text-gray-400">#{ticket?._id?.slice(-8)}</p>
           </div>
         </div>
         
@@ -144,20 +144,20 @@ const TicketDetail = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* Ticket Info */}
           <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
               {ticket?.subject}
             </h2>
             
             <div className="prose max-w-none">
-              <p className="text-gray-700 whitespace-pre-wrap">
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {ticket?.description}
               </p>
             </div>
 
             {ticket?.category && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <span className="text-sm text-gray-500">Category: </span>
-                <span className="text-sm font-medium text-gray-900 capitalize">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Category: </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
                   {ticket.category}
                 </span>
               </div>
@@ -167,12 +167,12 @@ const TicketDetail = () => {
           {/* Comments Section */}
           <div className="card">
             <div className="flex items-center space-x-2 mb-4">
-              <MessageSquare className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Comments</h3>
+              <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Comments</h3>
             </div>
             
-            <div className="text-center py-8 text-gray-500">
-              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
               <p>No comments yet</p>
               <p className="text-sm">Comments and updates will appear here</p>
             </div>
@@ -183,7 +183,7 @@ const TicketDetail = () => {
         <div className="space-y-6">
           {/* Status & Priority */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Status & Priority</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status & Priority</h3>
             
             {editing ? (
               <div className="space-y-4">
@@ -230,14 +230,14 @@ const TicketDetail = () => {
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Status:</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
                   <span className={getStatusBadge(ticket?.status)}>
                     {ticket?.status}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Priority:</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Priority:</span>
                   <span className={getPriorityBadge(ticket?.priority)}>
                     {ticket?.priority}
                   </span>
@@ -248,14 +248,14 @@ const TicketDetail = () => {
 
           {/* Ticket Details */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Details</h3>
             
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
                 <User className="h-5 w-5 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-600">Created by</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Created by</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {ticket?.createdBy?.name || 'Unknown'}
                   </p>
                 </div>
@@ -264,8 +264,8 @@ const TicketDetail = () => {
               <div className="flex items-start space-x-3">
                 <User className="h-5 w-5 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-600">Assigned to</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Assigned to</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {ticket?.assignedTo?.name || 'Unassigned'}
                   </p>
                 </div>
@@ -274,8 +274,8 @@ const TicketDetail = () => {
               <div className="flex items-start space-x-3">
                 <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-600">Created</p>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Created</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {new Date(ticket?.createdAt).toLocaleString()}
                   </p>
                 </div>
@@ -285,8 +285,8 @@ const TicketDetail = () => {
                 <div className="flex items-start space-x-3">
                   <Clock className="h-5 w-5 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-600">Last updated</p>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Last updated</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {new Date(ticket?.updatedAt).toLocaleString()}
                     </p>
                   </div>

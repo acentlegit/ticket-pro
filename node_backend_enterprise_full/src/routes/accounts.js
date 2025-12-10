@@ -68,7 +68,8 @@ router.get('/:companyId/accounts', authenticateToken, async (req, res) => {
 // Create account
 router.post('/:companyId/accounts', authenticateToken, async (req, res) => {
   try {
-    const { accountName, address, website } = req.body;
+    const { companyId } = req.params;
+    const { accountName, website, accountOwner,country,email,phone } = req.body;
 
     if (!accountName) {
       return res.status(400).json({ message: 'Account name is required' });
@@ -76,8 +77,12 @@ router.post('/:companyId/accounts', authenticateToken, async (req, res) => {
 
     const account = await Account.create({
       accountName: accountName.trim(),
-      address: address?.trim(),
-      website: website?.trim()
+      accountOwner: accountOwner?.trim(),
+      country: country?.trim(),
+      email: email?.trim(),
+      phone: phone?.trim(),
+      website: website?.trim(),
+      companyId: companyId || null
     });
 
     res.status(201).json({
@@ -112,6 +117,7 @@ router.get('/:companyId/accounts/:id', authenticateToken, async (req, res) => {
 // Update account
 router.put('/:companyId/accounts/:id', authenticateToken, async (req, res) => {
   try {
+    const { companyId } = req.params;
     const account = await Account.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -128,6 +134,29 @@ router.put('/:companyId/accounts/:id', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Update account error:', error);
+    res.status(500).json({ message: 'Failed to update account', error: error.message });
+  }
+});
+
+// Patch account (partial update)
+router.patch('/:companyId/accounts/:id', authenticateToken, async (req, res) => {
+  try {
+    const account = await Account.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!account) {
+      return res.status(404).json({ message: 'Account not found' });
+    }
+
+    res.json({
+      message: 'Account updated successfully',
+      account
+    });
+  } catch (error) {
+    console.error('Patch account error:', error);
     res.status(500).json({ message: 'Failed to update account', error: error.message });
   }
 });

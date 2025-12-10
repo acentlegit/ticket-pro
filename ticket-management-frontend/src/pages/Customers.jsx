@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search, User, Building2, Mail, Phone, Edit, Trash2 } from 'lucide-react'
+import { Plus, Search, User, Building2, Mail, Phone, Edit, X } from 'lucide-react'
 import api from '../services/api'
 
 const Customers = () => {
@@ -8,9 +8,15 @@ const Customers = () => {
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [formData, setFormData] = useState({})
+  const [users, setUsers] = useState([])
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     fetchData()
+    fetchUsers()
   }, [])
 
   const fetchData = async () => {
@@ -19,7 +25,6 @@ const Customers = () => {
       const [contactsRes, accountsRes] = await Promise.all([
         api.get(`${companyId}/contacts`),
         api.get(`${companyId}/accounts`)
-        // api.get('/accounts')
       ])
       setContacts(contactsRes.data.contacts || [])
       setAccounts(accountsRes.data.accounts || [])
@@ -27,6 +32,15 @@ const Customers = () => {
       console.error('Failed to fetch data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/auth/users')
+      setUsers(response.data.users || [])
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
     }
   }
 
@@ -39,6 +53,100 @@ const Customers = () => {
     account.accountName?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const handleEdit = (item) => {
+    setIsCreating(false)
+    setEditingItem(item)
+    if (activeTab === 'contacts') {
+      setFormData({
+        firstName: item.firstName || '',
+        lastName: item.lastName || '',
+        email: item.email || '',
+        secondaryEmail: item.secondaryEmail || '',
+        accountId: item.accountId?._id || '',
+        contactOwner: item.contactOwner?._id || item.contactOwner || '',
+        phone: item.phoneNumber || '',
+        mobile: item.mobileNumber || '',
+        type: item.type || '',
+        title: item.title || '',
+        language: item.language || ''
+      })
+    } else {
+      setFormData({
+        accountName: item.accountName || '',
+        email: item.email || '',
+        phone: item.phone || '',
+        website: item.website || item.domain || '',
+        country: item.country || '',
+        accountOwner: item.accountOwner || ''
+      })
+    }
+    setShowModal(true)
+  }
+
+  const handleCreate = () => {
+    setIsCreating(true)
+    setEditingItem(null)
+    if (activeTab === 'contacts') {
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        secondaryEmail: '',
+        accountId: '',
+        contactOwner: '',
+        phone: '',
+        mobile: '',
+        type: '',
+        title: '',
+        language: ''
+      })
+    } else {
+      setFormData({
+        accountName: '',
+        email: '',
+        phone: '',
+        website: '',
+        country: '',
+        accountOwner: ''
+      })
+    }
+    setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setEditingItem(null)
+    setFormData({})
+  }
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const companyId = localStorage.getItem('companyId')
+      if (activeTab === 'contacts') {
+        if (isCreating) {
+          await api.post(`/${companyId}/contacts`, formData)
+        } else {
+          await api.put(`/${companyId}/contacts/${editingItem._id}`, formData)
+        }
+      } else {
+        if (isCreating) {
+          await api.post(`/${companyId}/accounts`, formData)
+        } else {
+          await api.put(`/${companyId}/accounts/${editingItem._id}`, formData)
+        }
+      }
+      fetchData()
+      handleCloseModal()
+    } catch (error) {
+      console.error('Failed to save:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -48,36 +156,37 @@ const Customers = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Customers</h1>
-            <p className="text-sm text-gray-600 mt-1">Manage your contacts and accounts</p>
+            <h1 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">Customers</h1>
+            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 hidden sm:block">Manage your contacts and accounts</p>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="relative">
+          <div className="flex items-center space-x-2 md:space-x-3">
+            <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
+                className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-40 md:w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
             </div>
-            <button className="btn-primary flex items-center space-x-2">
+            <button onClick={handleCreate} className="btn-primary flex items-center space-x-1 md:space-x-2">
               <Plus className="h-4 w-4" />
-              <span>Add {activeTab === 'contacts' ? 'Contact' : 'Account'}</span>
+              <span className="hidden sm:inline">Add {activeTab === 'contacts' ? 'Contact' : 'Account'}</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6">
+      <div className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div className="px-4 md:px-6">
           <div className="flex space-x-8">
             <button
               onClick={() => setActiveTab('contacts')}
@@ -116,9 +225,9 @@ const Customers = () => {
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         {activeTab === 'contacts' ? (
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow dark:bg-gray-800">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -139,7 +248,7 @@ const Customers = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -154,7 +263,7 @@ const Customers = () => {
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
-                                {contact.fullName}
+                                {contact.firstName}
                               </div>
                             </div>
                           </div>
@@ -184,14 +293,9 @@ const Customers = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button className="text-primary-600 hover:text-primary-900">
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-900">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
+                          <button onClick={() => handleEdit(contact)} className="text-primary-600 hover:text-primary-900">
+                            <Edit className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -211,7 +315,7 @@ const Customers = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow dark:bg-gray-800">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -220,19 +324,16 @@ const Customers = () => {
                       Account Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Industry
+                      Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Website
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Action
                     </th>
                   </tr>
                 </thead>
@@ -253,27 +354,21 @@ const Customers = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {account.industry || '-'}
+                          {account.email || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {account.domain ? (
+                          {account.website ? (
                             <a
-                              href={account.domain}
+                              href={account.website.startsWith('http') ? account.website : `https://${account.website}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary-600 hover:text-primary-900"
                             >
-                              {account.domain}
+                              {account.website}
                             </a>
                           ) : (
                             '-'
                           )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Phone className="h-4 w-4 text-gray-400 mr-2" />
-                            {account.phone || '-'}
-                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -285,20 +380,15 @@ const Customers = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button className="text-primary-600 hover:text-primary-900">
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-900">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
+                          <button onClick={() => handleEdit(account)} className="text-primary-600 hover:text-primary-900">
+                            <Edit className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center">
+                      <td colSpan="5" className="px-6 py-12 text-center">
                         <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                         <p className="text-gray-500 font-medium">No accounts found</p>
                         <p className="text-sm text-gray-400 mt-1">
@@ -313,6 +403,144 @@ const Customers = () => {
           </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800">
+            <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {isCreating ? 'Create' : 'Edit'} {activeTab === 'contacts' ? 'Contact' : 'Account'}
+              </h3>
+              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-4 md:p-6">
+              {activeTab === 'contacts' ? (
+                <div className="space-y-4 md:space-y-6">
+                  <h4 className="text-sm md:text-base font-semibold text-gray-900 dark:text-gray-100">Contact Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">First Name</label>
+                      <input name="firstName" value={formData.firstName || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></label>
+                      <input name="lastName" value={formData.lastName || ''} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Email</label>
+                      <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Secondary Email</label>
+                      <input type="email" name="secondaryEmail" value={formData.secondaryEmail || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Account Name</label>
+                      <select name="accountId" value={formData.accountId || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Select Account</option>
+                        {accounts.map(acc => <option key={acc._id} value={acc._id}>{acc.accountName}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Contact Owner</label>
+                      <select name="contactOwner" value={formData.contactOwner || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Select Owner</option>
+                        {users.map(u => <option key={u._id} value={u._id}>{u.fullName}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Phone</label>
+                      <input name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Mobile</label>
+                      <input name="mobile" value={formData.mobile || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Type</label>
+                      <select name="type" value={formData.type || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">-None-</option>
+                        <option value="Paid User">Paid User</option>
+                        <option value="Prospect">Prospect</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Title</label>
+                      <input name="title" value={formData.title || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Language</label>
+                      <select name="language" value={formData.language || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">-None-</option>
+                        <option value="English">English</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 md:space-y-6">
+                  <h4 className="text-sm md:text-base font-semibold text-gray-900 dark:text-gray-100">Account Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Account Name <span className="text-red-500">*</span></label>
+                      <input name="accountName" value={formData.accountName || ''} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Email</label>
+                      <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Phone</label>
+                      <input name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Website</label>
+                      <input name="website" value={formData.website || ''} onChange={handleChange} placeholder="https://www.example.com" className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Country</label>
+                      <input name="country" value={formData.country || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Account Owner</label>
+                      <select name="accountOwner" value={formData.accountOwner || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">Select Owner</option>
+                        {users.map(u => <option key={u._id} value={u._id}>{u.fullName}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end space-x-3 pt-4">
+                <button type="button" onClick={handleCloseModal} className="btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

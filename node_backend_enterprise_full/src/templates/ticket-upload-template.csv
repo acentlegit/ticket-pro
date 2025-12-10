@@ -1,0 +1,6 @@
+Subject,Description,Priority,Status,Channel,Contact Name,Contact Email,Contact Phone,Account Name,Department,Product,Assigned Agent Email,Team,Due Date,Classification,Language,Tags
+Login Issue,User cannot access their account after password reset,high,open,email,John Doe,john.doe@example.com,+1-555-0101,Acme Corporation,IT Support,Product A,agent1@company.com,Support Team,2025-12-20,Technical,English,"login,password,urgent"
+Feature Request,Add dark mode to mobile application,medium,open,web,Jane Smith,jane.smith@example.com,+1-555-0102,TechCorp Inc,Product Development,Product B,agent2@company.com,Development Team,2025-12-25,Enhancement,English,"feature,mobile,ui"
+Bug Report,Application crashes when uploading large files,urgent,open,chat,Bob Johnson,bob.j@example.com,+1-555-0103,Global Systems,Technical Support,Product A,agent1@company.com,Support Team,2025-12-15,Bug,English,"bug,crash,file-upload"
+General Inquiry,Questions about pricing plans,low,open,phone,Alice Williams,alice.w@example.com,+1-555-0104,StartUp LLC,Sales,Product C,agent3@company.com,Sales Team,2025-12-30,Sales,English,"pricing,inquiry"
+Performance Issue,Dashboard loading very slowly,high,open,email,Charlie Brown,charlie.b@example.com,+1-555-0105,Enterprise Corp,IT Support,Product B,agent2@company.com,Support Team,2025-12-18,Technical,English,"performance,dashboard"

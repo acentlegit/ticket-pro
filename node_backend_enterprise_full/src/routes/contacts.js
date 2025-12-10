@@ -17,7 +17,7 @@ const authenticateToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid token - user not found' });
     }
@@ -33,8 +33,9 @@ const authenticateToken = async (req, res, next) => {
 // Get all contacts
 router.get('/:companyId/contacts', authenticateToken, async (req, res) => {
   try {
-    const { search, companyId, page = 1, limit = 50 } = req.query;
-    
+    const { companyId } = req.params;
+    const { search, page = 1, limit = 50 } = req.query;
+
     const filter = {};
     if (search) {
       filter.$or = [
@@ -51,10 +52,10 @@ router.get('/:companyId/contacts', authenticateToken, async (req, res) => {
       .sort({ fullName: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-    
+
     const total = await Contact.countDocuments(filter);
-    
-    res.json({ 
+
+    res.json({
       contacts,
       pagination: {
         page: parseInt(page),
@@ -70,33 +71,98 @@ router.get('/:companyId/contacts', authenticateToken, async (req, res) => {
 });
 
 // Create contact
+// router.post('/:companyId/contacts', authenticateToken, async (req, res) => {
+//   try {
+//     const { fullName, email, phoneNumber, companyId } = req.body;
+
+//     if (!fullName) {
+//       return res.status(400).json({ message: 'Full name is required' });
+//     }
+
+//     const contact = await Contact.create({
+//       fullName: fullName.trim(),
+//       email: email?.trim(),
+//       phoneNumber: phoneNumber?.trim(),
+//       companyId: companyId || null
+//     });
+
+//     const populatedContact = await Contact.findById(contact._id)
+//       .populate('companyId', 'companyName');
+
+//     res.status(201).json({
+//       message: 'Contact created successfully',
+//       contact: populatedContact
+//     });
+//   } catch (error) {
+//     console.error('Create contact error:', error);
+//     res.status(500).json({ 
+//       message: 'Failed to create contact', 
+//       error: error.message 
+//     });
+//   }
+// });
 router.post('/:companyId/contacts', authenticateToken, async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, companyId } = req.body;
+    const { companyId } = req.params;
 
-    if (!fullName) {
-      return res.status(400).json({ message: 'Full name is required' });
+    const {
+      firstName,
+      lastName,
+      email,
+      secondaryEmail,
+      phone,
+      mobile,
+      type,
+      title,
+      language,
+      accountId
+    } = req.body;
+
+    // ✅ Required validation
+    if (!firstName || !accountId) {
+      return res.status(400).json({
+        message: 'First name and Account ID are required'
+      });
     }
 
+    // ✅ Create contact
     const contact = await Contact.create({
-      fullName: fullName.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName?.trim(),
       email: email?.trim(),
-      phoneNumber: phoneNumber?.trim(),
-      companyId: companyId || null
+      secondaryEmail: secondaryEmail?.trim(),
+      phoneNumber: phone?.trim(),
+      mobileNumber: mobile?.trim(),
+      type: type?.trim(),
+      title: title?.trim(),
+      language: language?.trim(),
+      companyId,
+      accountId
     });
-    
+
+    // ✅ Populate references
     const populatedContact = await Contact.findById(contact._id)
-      .populate('companyId', 'companyName');
-    
+      .populate('companyId', 'companyName')
+      .populate('accountId', 'accountName');
+
     res.status(201).json({
       message: 'Contact created successfully',
       contact: populatedContact
     });
+
   } catch (error) {
     console.error('Create contact error:', error);
-    res.status(500).json({ 
-      message: 'Failed to create contact', 
-      error: error.message 
+
+    // ✅ Handle duplicate email error
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: 'Email already exists'
+      });
+    }
+
+    res.status(500).json({
+      message: 'Failed to create contact',
+      error: error.message
     });
   }
 });
@@ -105,20 +171,20 @@ router.post('/:companyId/contacts', authenticateToken, async (req, res) => {
 router.get('/:companyId/contacts/email/:email', authenticateToken, async (req, res) => {
   try {
     const email = req.params.email.toLowerCase().trim();
-    
+
     const contact = await Contact.findOne({ email: email })
       .populate('companyId', 'companyName website');
-    
+
     if (!contact) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'Contact not found',
-        found: false 
+        found: false
       });
     }
-    
-    res.json({ 
+
+    res.json({
       contact,
-      found: true 
+      found: true
     });
   } catch (error) {
     console.error('Find contact by email error:', error);
@@ -131,11 +197,11 @@ router.get('/:companyId/contacts/:id', authenticateToken, async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id)
       .populate('companyId', 'companyName');
-    
+
     if (!contact) {
       return res.status(404).json({ message: 'Contact not found' });
     }
-    
+
     res.json({ contact });
   } catch (error) {
     console.error('Get contact error:', error);
@@ -146,16 +212,41 @@ router.get('/:companyId/contacts/:id', authenticateToken, async (req, res) => {
 // Update contact
 router.put('/:companyId/contacts/:id', authenticateToken, async (req, res) => {
   try {
+    const { companyId } = req.params;
+    const {
+      firstName,
+      lastName,
+      email,
+      secondaryEmail,
+      phone,
+      mobile,
+      type,
+      title,
+      language,
+      accountId
+    } = req.body;
     const contact = await Contact.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        firstName: firstName.trim(),
+        lastName: lastName?.trim(),
+        email: email?.trim(),
+        secondaryEmail: secondaryEmail?.trim(),
+        phoneNumber: phone?.trim(),
+        mobileNumber: mobile?.trim(),
+        type: type?.trim(),
+        title: title?.trim(),
+        language: language?.trim(),
+        companyId,
+        accountId
+      },
       { new: true, runValidators: true }
     ).populate('companyId', 'companyName');
-    
+
     if (!contact) {
       return res.status(404).json({ message: 'Contact not found' });
     }
-    
+
     res.json({
       message: 'Contact updated successfully',
       contact

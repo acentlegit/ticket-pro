@@ -15,7 +15,12 @@ const AccountSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
-  phoneNumber: {
+  phone: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Phone number cannot exceed 50 characters']
+  },
+   country: {
     type: String,
     trim: true,
     maxlength: [50, 'Phone number cannot exceed 50 characters']
@@ -23,6 +28,10 @@ const AccountSchema = new mongoose.Schema({
   accountOwner: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' 
+  },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company'
   },
   website: {
     type: String,

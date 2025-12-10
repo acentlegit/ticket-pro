@@ -219,8 +219,8 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-gray-900">Overview Dashboard</h1>
-          <button className="p-2 text-gray-400 hover:text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Overview Dashboard</h1>
+          <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <Filter className="h-5 w-5" />
           </button>
         </div>
@@ -228,7 +228,7 @@ const Dashboard = () => {
           <select 
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value)}
-            className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="input-field text-sm"
           >
             <option>Last 24 Hours</option>
             <option>Last 7 Days</option>
@@ -240,14 +240,14 @@ const Dashboard = () => {
       {/* Main Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {mainMetrics.map((metric, index) => (
-          <div key={index} className={`bg-white rounded-lg border ${metric.borderColor} p-4 hover:shadow-md transition-shadow`}>
+          <div key={index} className={`card border ${metric.borderColor} dark:border-gray-700 p-4 hover:shadow-md transition-shadow`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">{metric.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{metric.title}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metric.value}</p>
               </div>
-              <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                <metric.icon className={`h-5 w-5 ${metric.textColor}`} />
+              <div className={`p-2 rounded-lg ${metric.bgColor} dark:bg-opacity-20`}>
+                <metric.icon className={`h-5 w-5 ${metric.textColor} dark:opacity-80`} />
               </div>
             </div>
           </div>
@@ -255,8 +255,8 @@ const Dashboard = () => {
       </div>
 
       {/* Tickets Stats Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Tickets Stats</h2>
+      <div className="card p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Tickets Stats</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {ticketStats.map((stat, index) => (
@@ -271,11 +271,11 @@ const Dashboard = () => {
         </div>
 
         {/* Chart Placeholder */}
-        <div className="h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+        <div className="h-64 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
           <div className="text-center">
-            <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 font-medium">Ticket Volume Chart</p>
-            <p className="text-sm text-gray-400">Chart visualization would appear here</p>
+            <BarChart3 className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Ticket Volume Chart</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">Chart visualization would appear here</p>
           </div>
         </div>
       </div>
@@ -283,45 +283,45 @@ const Dashboard = () => {
       {/* Bottom Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Traffic Analysis */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Traffic Analysis</h3>
-            <select className="text-sm border border-gray-300 rounded px-2 py-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Traffic Analysis</h3>
+            <select className="input-field text-sm px-2 py-1">
               <option>Donut</option>
               <option>Bar</option>
               <option>Line</option>
             </select>
           </div>
-          <div className="h-32 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <PieChart className="h-8 w-8 text-gray-400" />
+          <div className="h-32 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+            <PieChart className="h-8 w-8 text-gray-400 dark:text-gray-500" />
           </div>
         </div>
 
         {/* Average Handling Time */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Average Handling Time</h3>
-            <select className="text-sm border border-gray-300 rounded px-2 py-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Average Handling Time</h3>
+            <select className="input-field text-sm px-2 py-1">
               <option>Horizontal Bar</option>
               <option>Vertical Bar</option>
             </select>
           </div>
-          <div className="h-32 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <Activity className="h-8 w-8 text-gray-400" />
+          <div className="h-32 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+            <Activity className="h-8 w-8 text-gray-400 dark:text-gray-500" />
           </div>
         </div>
 
         {/* Happiness Rate */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Happiness Rate</h3>
-            <select className="text-sm border border-gray-300 rounded px-2 py-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Happiness Rate</h3>
+            <select className="input-field text-sm px-2 py-1">
               <option>Donut</option>
               <option>Gauge</option>
             </select>
           </div>
-          <div className="h-32 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <TrendingUp className="h-8 w-8 text-gray-400" />
+          <div className="h-32 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+            <TrendingUp className="h-8 w-8 text-gray-400 dark:text-gray-500" />
           </div>
         </div>
       </div>
