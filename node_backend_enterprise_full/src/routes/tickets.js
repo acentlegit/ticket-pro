@@ -11,6 +11,16 @@ import jwt from 'jsonwebtoken';
 import Product from '../models/Product.js';
 import Account from '../models/Account.js';
 import mongoose from 'mongoose';
+import { bulkUpload } from '../middleware/bulkUpload.js';
+import { parseFile } from '../utils/fileParser.js';
+import { validateTicketData, normalizeTicketData } from '../utils/ticketValidator.js';
+import Department from '../models/Department.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const router = express.Router();
 
@@ -80,8 +90,8 @@ router.post('/:companyId/tickets', authenticateToken, requireRole(['admin', 'sup
     if (!subject || !description) {
       return res.status(400).json({ message: 'Subject and description are required' });
     }
-  
-let account = await Account.findOne({
+
+    let account = await Account.findOne({
       $or: [
         { accountName: accountNameOrId },
         { _id: mongoose.Types.ObjectId.isValid(accountNameOrId) ? accountNameOrId : null }
@@ -96,14 +106,14 @@ let account = await Account.findOne({
     }
 
     let contact = await Contact.findOne({ email: email });
-      // .populate('companyId', 'companyName website');
+    // .populate('companyId', 'companyName website');
     if (!contact) {
       contact = await Contact.create({
         firstName: contactName,
         email: email?.trim(),
         phoneNumber: phone?.trim(),
         companyId: companyId || null,
-        accountId : account._id || null
+        accountId: account._id || null
       });
     }
     const ticketData = {
@@ -290,7 +300,7 @@ router.patch('/:companyId/tickets/:id', authenticateToken, requireRole(['admin',
           { _id: mongoose.Types.ObjectId.isValid(req.body.accountNameOrId) ? req.body.accountNameOrId : null }
         ]
       });
-      
+
       if (!account) {
         account = await Account.create({
           accountName: req.body.accountNameOrId,
@@ -303,7 +313,7 @@ router.patch('/:companyId/tickets/:id', authenticateToken, requireRole(['admin',
     // Handle contact updates
     if (req.body.contactName || req.body.email || req.body.phone) {
       let contact = await Contact.findOne({ email: req.body.email });
-      
+
       if (!contact && req.body.email) {
         contact = await Contact.create({
           firstName: req.body.contactName,
@@ -318,7 +328,7 @@ router.patch('/:companyId/tickets/:id', authenticateToken, requireRole(['admin',
           phoneNumber: req.body.phone?.trim()
         });
       }
-      
+
       if (contact) {
         req.body.contactId = contact._id;
       }
@@ -375,6 +385,226 @@ router.delete('/:companyId/tickets/:id', authenticateToken, requireRole(['admin'
     console.error('Delete ticket error:', error);
     res.status(500).json({ message: 'Failed to delete ticket' });
   }
+});
+
+// Bulk upload tickets
+router.post('/:companyId/tickets/bulk-upload',
+  authenticateToken,
+  requireRole(['admin', 'supervisor', 'agent']),
+  bulkUpload.single('file'),
+  async (req, res) => {
+    const startTime = Date.now();
+
+    try {
+      const { companyId } = req.params;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded'
+        });
+      }
+
+      // Parse file
+      const rows = await parseFile(file.path, file.mimetype);
+
+      if (rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'File is empty or invalid'
+        });
+      }
+
+      // Limit rows to prevent abuse
+      if (rows.length > 1000) {
+        return res.status(400).json({
+          success: false,
+          message: 'Maximum 1000 tickets allowed per upload'
+        });
+      }
+
+      const results = {
+        totalRows: rows.length,
+        successCount: 0,
+        failureCount: 0,
+        createdTickets: [],
+        errors: []
+      };
+
+      // Process each row
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowNumber = i + 2; // +2 for header row and 0-index
+
+        // Validate row
+        const validation = validateTicketData(row);
+        if (!validation.valid) {
+          results.failureCount++;
+          results.errors.push({
+            row: rowNumber,
+            data: row,
+            errors: validation.errors
+          });
+          continue;
+        }
+
+        try {
+          // Normalize data
+          const ticketData = normalizeTicketData(row);
+          // Find or create account
+          let account = null;
+          let contact = null;
+          if (ticketData.accountName) {
+            account = await Account.findOne({
+              accountName: ticketData.accountName,
+              companyId
+            });
+            if (!account) {
+              account = await Account.create({
+                accountName: ticketData.accountName,
+                companyId
+              });
+            }
+
+            // Find or create contact
+            if (ticketData.contactEmail) {
+              contact = await Contact.findOne({
+                email: ticketData.contactEmail,
+                companyId
+              });
+
+              if (!contact) {
+                contact = await Contact.create({
+                  firstName: ticketData.contactName || 'Unknown',
+                  email: ticketData.contactEmail,
+                  phoneNumber: ticketData.contactPhone,
+                  accountId: account._id || null,
+                  companyId
+                });
+              }
+            }
+            // Update contact's account if needed
+            // if (contact && !contact.accountId) {
+            //   contact.accountId = account._id;
+            //   await contact.save();
+            // }
+          }
+
+          // Find department by name
+          let department = null;
+          if (ticketData.departmentName) {
+            department = await Department.findOne({
+              departmentName: ticketData.departmentName,
+              companyId
+            });
+          }
+
+          // Find product by name
+          let product = null;
+          if (ticketData.productName) {
+            product = await Product.findOne({
+              productName: ticketData.productName,
+              companyId
+            });
+          }
+
+          // Find assigned agent by email
+          let assignedAgent = null;
+          if (ticketData.assignedAgentEmail) {
+            assignedAgent = await User.findOne({
+              email: ticketData.assignedAgentEmail,
+              companyId
+            });
+          }
+
+          // Find team by name
+          let team = null;
+          if (ticketData.teamName) {
+            team = await Team.findOne({
+              teamName: ticketData.teamName,
+              companyId
+            });
+          }
+
+          // Create ticket
+          const ticket = await Ticket.create({
+            subject: ticketData.subject,
+            description: ticketData.description,
+            priority: ticketData.priority,
+            status: ticketData.status,
+            channel: ticketData.channel,
+            contactId: contact?._id,
+            accountId: account?._id,
+            departmentId: department?._id,
+            productId: product?._id,
+            assignedAgentId: assignedAgent?._id,
+            teamId: team?._id,
+            dueDate: ticketData.dueDate,
+            classification: ticketData.classification,
+            language: ticketData.language,
+            companyId,
+            createdBy: req.user._id
+          });
+
+          // Create ticket history
+          await TicketHistory.create({
+            ticketId: ticket._id,
+            fieldChanged: 'ticket_created',
+            oldValue: null,
+            newValue: 'Ticket created via bulk upload',
+            changedBy: req.user._id,
+            changedByType: 'agent',
+            changeType: 'create'
+          });
+
+          results.successCount++;
+          results.createdTickets.push({
+            _id: ticket._id,
+            subject: ticket.subject,
+            priority: ticket.priority,
+            status: ticket.status
+          });
+
+        } catch (error) {
+          results.failureCount++;
+          results.errors.push({
+            row: rowNumber,
+            data: row,
+            errors: [{
+              field: 'general',
+              message: error.message
+            }]
+          });
+        }
+      }
+
+      const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      res.json({
+        success: true,
+        message: 'Bulk upload completed',
+        summary: {
+          ...results,
+          processingTime: `${processingTime}s`
+        }
+      });
+
+    } catch (error) {
+      console.error('Bulk upload error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Bulk upload failed',
+        error: error.message
+      });
+    }
+  }
+);
+
+// Download template endpoint
+router.get('/tickets/bulk-upload/template', authenticateToken, (req, res) => {
+  const templatePath = path.join(__dirname, '../templates/ticket-upload-template.csv');
+  res.download(templatePath, 'ticket-upload-template.csv');
 });
 
 export default router;

@@ -20,14 +20,16 @@ import Departments from './pages/Departments'
 import Products from './pages/Products'
 import AddProduct from './pages/AddProduct'
 import Settings from './pages/Settings'
+import BulkUploadTickets from './pages/BulkUploadTickets'
+import BulkUploadAgents from './pages/BulkUploadAgents'
 import InvitationAccept from './pages/InvitationAccept'
 import InvitationRegister from './pages/InvitationRegister'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
-      <AuthProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <AuthProvider>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -51,10 +53,12 @@ function App() {
             <Route path="companies/:companyId/dashboard" element={<Dashboard />} />
             <Route path="companies/:companyId/tickets" element={<TicketList />} />
             <Route path="companies/:companyId/tickets/new" element={<CreateTicket />} />
+            <Route path="companies/:companyId/tickets/bulk-upload" element={<BulkUploadTickets />} />
             <Route path="companies/:companyId/tickets/:id" element={<TicketDetail />} />
             <Route path="companies/:companyId/tickets/:id/edit" element={<EditTicket />} />
             <Route path="companies/:companyId/customers" element={<Customers />} />
             <Route path="companies/:companyId/users" element={<UserManagement />} />
+            <Route path="companies/:companyId/users/bulk-upload" element={<BulkUploadAgents />} />
             <Route path="companies/:companyId/settings" element={<Settings />} />
             <Route path="companies/:companyId/profile" element={<CompanyProfile />} />
             <Route path="companies/:companyId/users/agents/new" element={<AddAgent />} />
@@ -70,11 +74,10 @@ function App() {
 
 
 
-
           </Route>
         </Routes>
-        </Router>
-      </AuthProvider>
+      </Router>
+    </AuthProvider>
   )
 }
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { 
-  Plus, 
-  Search, 
-  Eye, 
-  Ticket, 
+import {
+  Plus,
+  Search,
+  Eye,
+  Ticket,
   Filter,
   Settings,
   MoreVertical,
@@ -16,7 +16,8 @@ import {
   XCircle,
   Edit,
   Mail,
-  MailOpen
+  MailOpen,
+  Upload
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../services/api'
@@ -65,10 +66,10 @@ const TicketList = () => {
 
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
+      ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesView = activeView === 'all' || ticket.status === activeView
     const matchesCategory = selectedCategory === 'all' || ticket.priority === selectedCategory
-    
+
     return matchesSearch && matchesView && matchesCategory
   })
 
@@ -98,7 +99,7 @@ const TicketList = () => {
     try {
       await api.patch(`/${companyId}/tickets/${ticketId}`, { isRead: true })
       // Update local state
-      setTickets(tickets.map(t => 
+      setTickets(tickets.map(t =>
         t._id === ticketId ? { ...t, isRead: true } : t
       ))
     } catch (error) {
@@ -150,6 +151,13 @@ const TicketList = () => {
               />
             </div>
             <Link
+              to={`/companies/${companyId}/tickets/bulk-upload`}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              <span>Bulk Upload</span>
+            </Link>
+            <Link
               to={`/companies/${companyId}/tickets/new`}
               className="btn-primary flex items-center space-x-2"
             >
@@ -174,7 +182,7 @@ const TicketList = () => {
               </option>
             ))}
           </select>
-          
+
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -225,8 +233,8 @@ const TicketList = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredTickets.length > 0 ? (
                 filteredTickets.map((ticket, index) => (
-                  <tr 
-                    key={ticket._id} 
+                  <tr
+                    key={ticket._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 relative group"
                     onMouseEnter={() => setHoveredTicket(ticket._id)}
                     onMouseLeave={() => setHoveredTicket(null)}
@@ -260,34 +268,32 @@ const TicketList = () => {
                       {ticket.accountId?.accountName || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {ticket.customerRespondedTime 
-                        ? new Date(ticket.customerRespondedTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                      {ticket.customerRespondedTime
+                        ? new Date(ticket.customerRespondedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : '-'
                       }
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {ticket.dueDate ? (
-                        <span className={`${
-                          new Date(ticket.dueDate) < new Date() ? 'text-red-600' : 'text-gray-500'
-                        }`}>
-                          {new Date(ticket.dueDate).toLocaleDateString()} {new Date(ticket.dueDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <span className={`${new Date(ticket.dueDate) < new Date() ? 'text-red-600' : 'text-gray-500'
+                          }`}>
+                          {new Date(ticket.dueDate).toLocaleDateString()} {new Date(ticket.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       ) : (
                         '-'
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap relative">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        ticket.status === 'open' ? 'bg-blue-100 text-blue-800' :
-                        ticket.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
-                        ticket.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                        ticket.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {ticket.status === 'in-progress' ? 'In Progress' : 
-                         ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ticket.status === 'open' ? 'bg-blue-100 text-blue-800' :
+                          ticket.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                            ticket.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                              ticket.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+                                'bg-gray-100 text-gray-800'
+                        }`}>
+                        {ticket.status === 'in-progress' ? 'In Progress' :
+                          ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                       </span>
-                      
+
                       {/* Hover Actions */}
                       {hoveredTicket === ticket._id && (
                         <div className="absolute right-6 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 z-10">

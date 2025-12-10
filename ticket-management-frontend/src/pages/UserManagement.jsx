@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Edit, Trash2, UserPlus } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Plus, Search, Edit, Trash2, UserPlus, Upload } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../services/api'
 
 const UserManagement = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { companyId } = useParams()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -55,9 +56,9 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = (u.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                         (u.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      (u.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     const matchesRole = roleFilter === 'all' || u.role === roleFilter
-    
+
     return matchesSearch && matchesRole
   })
 
@@ -102,7 +103,14 @@ const UserManagement = () => {
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => navigate('/users/agents/new')}
+            onClick={() => navigate(`/companies/${companyId}/users/bulk-upload`)}
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            <span>Bulk Upload</span>
+          </button>
+          <button
+            onClick={() => navigate(`/companies/${companyId}/users/agents/new`)}
             className="btn-primary flex items-center space-x-2"
           >
             <Plus className="h-5 w-5" />
@@ -242,14 +250,14 @@ const UserManagement = () => {
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Add New User</h3>
             </div>
-            
+
             <form onSubmit={handleCreateUser} className="p-6 space-y-4">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Name *
@@ -258,12 +266,12 @@ const UserManagement = () => {
                   type="text"
                   required
                   value={newUser.name}
-                  onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                   className="input-field"
                   placeholder="Full name"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email *
@@ -272,12 +280,12 @@ const UserManagement = () => {
                   type="email"
                   required
                   value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                   className="input-field"
                   placeholder="email@example.com"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Password *
@@ -286,19 +294,19 @@ const UserManagement = () => {
                   type="password"
                   required
                   value={newUser.password}
-                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                   className="input-field"
                   placeholder="Minimum 6 characters"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Role *
                 </label>
                 <select
                   value={newUser.role}
-                  onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                   className="input-field"
                 >
                   <option value="customer">Customer</option>
@@ -307,7 +315,7 @@ const UserManagement = () => {
                   {user?.role === 'admin' && <option value="admin">Admin</option>}
                 </select>
               </div>
-              
+
               <div className="flex items-center justify-end space-x-4 pt-4">
                 <button
                   type="button"
