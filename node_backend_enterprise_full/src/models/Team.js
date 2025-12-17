@@ -73,8 +73,8 @@ const TeamSchema = new mongoose.Schema({
     type: String,
     trim: true,
     validate: {
-      validator: (v) => !v || /^https?:\/\/.+\.(jpg|jpeg|png|gif)(\?.*)?$/i.test(v),
-      message: 'Logo URL must end with JPG, JPEG, PNG, or GIF.'
+      validator: (v) => !v || /^(https?:\/\/.+\.(jpg|jpeg|png|gif)(\?.*)?|data:image\/(jpeg|jpg|png|gif);base64,.+)$/i.test(v),
+      message: 'Logo must be a valid image URL or base64 encoded image.'
     }
   },
   members: [{

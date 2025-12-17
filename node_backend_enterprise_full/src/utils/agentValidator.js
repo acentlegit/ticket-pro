@@ -67,6 +67,7 @@ export const normalizeAgentData = (row) => {
         fax: row.Fax?.trim(),
         role: row.Role?.toLowerCase() || 'agent',
         status: row.Status?.toLowerCase() || 'inactive',
+        departmentName: row.Department?.trim(),
         teamName: row.Team?.trim(),
         channelExpert: row['Channel Expert']?.trim(),
         about: row.About?.trim()

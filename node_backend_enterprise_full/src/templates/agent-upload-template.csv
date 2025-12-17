@@ -1,6 +1,6 @@
-First Name,Last Name,Email,Phone Number,Mobile,Fax,Role,Status,Team,Channel Expert,About
-John,Doe,john.doe@company.com,+1-555-0101,+1-555-0102,,agent,active,Support Team,Email,"Experienced support agent with 5 years in customer service"
-Jane,Smith,jane.smith@company.com,+1-555-0201,+1-555-0202,,supervisor,active,Technical Team,Chat,"Senior technical supervisor specializing in complex issues"
-Bob,Johnson,bob.johnson@company.com,+1-555-0301,+1-555-0302,,agent,active,Sales Team,Phone,"Sales support specialist with product expertise"
-Alice,Williams,alice.williams@company.com,+1-555-0401,+1-555-0402,,agent,inactive,Support Team,Email,"New agent currently in training"
-Charlie,Brown,charlie.brown@company.com,+1-555-0501,+1-555-0502,,admin,active,,All Channels,"System administrator with full access"
+First Name,Last Name,Email,Phone Number,Mobile,Fax,Role,Status,Team,Department,Channel Expert,About
+John,Doe,john.doe@company.com,+1-555-0101,+1-555-0102,,agent,active,Support Team,Support,Email,"Experienced support agent with 5 years in customer service"
+Jane,Smith,jane.smith@company.com,+1-555-0201,+1-555-0202,,supervisor,active,Technical Team,Engineering,Chat,"Senior technical supervisor specializing in complex issues"
+Bob,Johnson,bob.johnson@company.com,+1-555-0301,+1-555-0302,,agent,active,Sales Team,Sales,Phone,"Sales support specialist with product expertise"
+Alice,Williams,alice.williams@company.com,+1-555-0401,+1-555-0402,,agent,inactive,Support Team,Support,Email,"New agent currently in training"
+Charlie,Brown,charlie.brown@company.com,+1-555-0501,+1-555-0502,,admin,active,,IT,All Channels,"System administrator with full access"

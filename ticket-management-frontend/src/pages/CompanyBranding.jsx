@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, Upload, X, Image as ImageIcon } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api'
 
 const CompanyBranding = () => {
   const navigate = useNavigate()
+  const { companyId } = useParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  
+
   const [formData, setFormData] = useState({
     companyName: '',
     logoUrl: '',
@@ -21,17 +22,19 @@ const CompanyBranding = () => {
   const [faviconPreview, setFaviconPreview] = useState(null)
 
   useEffect(() => {
-    fetchCompanyData()
-  }, [])
+    if (companyId) {
+      fetchCompanyData()
+    }
+  }, [companyId])
 
   const fetchCompanyData = async () => {
     try {
       // Fetch existing company branding data
-      const response = await api.get('/company/branding')
-      if (response.data) {
-        setFormData(response.data)
-        setLogoPreview(response.data.logoUrl)
-        setFaviconPreview(response.data.faviconUrl)
+      const response = await api.get(`/${companyId}/branding`)
+      if (response.data?.branding) {
+        setFormData(response.data.branding)
+        setLogoPreview(response.data.branding.logoUrl)
+        setFaviconPreview(response.data.branding.faviconUrl)
       }
     } catch (error) {
       console.error('Failed to fetch company data:', error)
@@ -109,23 +112,14 @@ const CompanyBranding = () => {
     setLoading(true)
 
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append('companyName', formData.companyName)
-      formDataToSend.append('logoLinkbackUrl', formData.logoLinkbackUrl)
-      formDataToSend.append('primaryColor', formData.primaryColor)
-      
-      if (formData.logoFile) {
-        formDataToSend.append('logo', formData.logoFile)
+      const brandingData = {
+        logoUrl: logoPreview || formData.logoUrl || '',
+        faviconUrl: faviconPreview || formData.faviconUrl || '',
+        logoLinkbackUrl: formData.logoLinkbackUrl || '',
+        useDefaultBranding: false
       }
-      if (formData.faviconFile) {
-        formDataToSend.append('favicon', formData.faviconFile)
-      }
-      const companyId = localStorage.getItem('companyId');
-      await api.post(`/${companyId}/branding`, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+
+      await api.put(`/${companyId}/branding`, brandingData)
 
       setSuccess('Company branding updated successfully!')
       setTimeout(() => setSuccess(''), 3000)

@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Upload } from 'lucide-react'
 import { Input, Select, TextArea, Button } from '../components/ui'
 import api from '../services/api'
 
 const AddAgent = () => {
   const navigate = useNavigate()
+  const { companyId } = useParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [departments, setDepartments] = useState([])
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     departments: '',
-    roleAndPermission: 'Agent',
+    roleAndPermission: 'agent',
     channelExpert: '',
     about: '',
     phone: '',
@@ -33,7 +34,6 @@ const AddAgent = () => {
 
   const fetchDepartments = async () => {
     try {
-      const companyId = localStorage.getItem('companyId')
       const response = await api.get(`/${companyId}/departments`)
       setDepartments(response.data.departments || [])
     } catch (error) {
@@ -92,21 +92,20 @@ const AddAgent = () => {
           }
         }
       })
-      
+
       if (formData.profileImage) {
         formDataToSend.append('profileImage', formData.profileImage)
       }
-      const companyId = localStorage.getItem('companyId')
-      await api.post(`/${companyId}/agents`,formDataToSend)
-      // await api.post(`/${companyId}/agents`, formDataToSend, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data'
-      //   }
-      // })
+      // const companyId = localStorage.getItem('companyId')
+      await api.post(`/${companyId}/agents`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
 
       setSuccess('Agent added successfully!')
       setTimeout(() => {
-        navigate('/users')
+        navigate(`/companies/${companyId}/users`)
       }, 1500)
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to add agent')
@@ -116,32 +115,32 @@ const AddAgent = () => {
   }
 
   const handleCancel = () => {
-    navigate('/users')
+    navigate(`/companies/${companyId}/users`)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             >
               <ArrowLeft className="h-6 w-6" />
             </button>
             <div>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span className="text-primary-600 cursor-pointer hover:underline" onClick={() => navigate('/users')}>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-primary-600 dark:text-primary-400 cursor-pointer hover:underline" onClick={() => navigate(`/companies/${companyId}/users`)}>
                   User Management
                 </span>
                 <span>/</span>
-                <span className="text-primary-600 cursor-pointer hover:underline" onClick={() => navigate('/users')}>
+                <span className="text-primary-600 dark:text-primary-400 cursor-pointer hover:underline" onClick={() => navigate(`/companies/${companyId}/users`)}>
                   Agents
                 </span>
                 <span>/</span>
-                <span className="text-gray-900">New Agent</span>
+                <span className="text-gray-900 dark:text-gray-100">New Agent</span>
               </div>
             </div>
           </div>
@@ -164,8 +163,8 @@ const AddAgent = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Agent Information */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Agent Information</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Agent Information</h2>
 
             <div className="space-y-6">
               {/* Profile Image */}
@@ -175,17 +174,17 @@ const AddAgent = () => {
                     <img
                       src={imagePreview}
                       alt="Profile preview"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-200">
+                    <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
                       <span className="text-gray-400 text-sm">No Image</span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
                   <label className="cursor-pointer">
-                    <span className="px-4 py-2 bg-white border border-primary-600 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 inline-block">
+                    <span className="px-4 py-2 bg-white dark:bg-gray-800 border border-primary-600 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 dark:hover:bg-primary-900/20 inline-block">
                       <Upload className="h-4 w-4 inline mr-2" />
                       Upload Photo
                     </span>
@@ -196,7 +195,7 @@ const AddAgent = () => {
                       className="hidden"
                     />
                   </label>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     Supported formats: PNG, JPG, JPEG. Max file size: 2 MB.
                   </p>
                 </div>
@@ -247,64 +246,82 @@ const AddAgent = () => {
 
               {/* Role and Permission */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Role and Permission <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <label className="flex items-center space-x-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input
                       type="radio"
                       name="roleAndPermission"
-                      value="Agent"
-                      checked={formData.roleAndPermission === 'Agent'}
+                      value="agent"
+                      checked={formData.roleAndPermission === 'agent' || formData.roleAndPermission === 'Agent'}
                       onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">Agent</div>
-                      <div className="text-xs text-gray-500">Can view and respond to tickets</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">Agent</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Can view and respond to tickets</div>
                     </div>
                   </label>
-                  <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+
+                  <label className="flex items-center space-x-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input
                       type="radio"
                       name="roleAndPermission"
-                      value="Admin"
-                      checked={formData.roleAndPermission === 'Admin'}
+                      value="company_admin"
+                      checked={formData.roleAndPermission === 'company_admin'}
                       onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">Admin</div>
-                      <div className="text-xs text-gray-500">Full access to all features</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">Company Admin</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Manage entire company settings and agents</div>
                     </div>
                   </label>
-                  <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+
+                  <label className="flex items-center space-x-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input
                       type="radio"
                       name="roleAndPermission"
-                      value="Light Agent"
-                      checked={formData.roleAndPermission === 'Light Agent'}
+                      value="department_admin"
+                      checked={formData.roleAndPermission === 'department_admin'}
                       onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">Light Agent</div>
-                      <div className="text-xs text-gray-500">Limited access to tickets</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">Department Admin</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Manage department tickets and agents</div>
                     </div>
                   </label>
-                  <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+
+                  <label className="flex items-center space-x-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input
                       type="radio"
                       name="roleAndPermission"
-                      value="Custom"
-                      checked={formData.roleAndPermission === 'Custom'}
+                      value="admin"
+                      checked={formData.roleAndPermission === 'admin' || formData.roleAndPermission === 'Admin'}
                       onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
                     />
                     <div>
-                      <div className="font-medium text-gray-900">Custom</div>
-                      <div className="text-xs text-gray-500">Custom role with specific permissions</div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">Admin</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Full access to all features</div>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="roleAndPermission"
+                      value="custom"
+                      checked={formData.roleAndPermission === 'custom' || formData.roleAndPermission === 'Custom'}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 bg-white dark:bg-gray-800"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">Custom</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Custom role with specific permissions</div>
                     </div>
                   </label>
                 </div>
@@ -313,8 +330,8 @@ const AddAgent = () => {
           </div>
 
           {/* Agent Additional Information */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Agent Additional Information</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Agent Additional Information</h2>
 
             <div className="space-y-6">
               {/* Channel Expert and About */}
@@ -371,7 +388,7 @@ const AddAgent = () => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-start space-x-3 bg-gray-100 px-6 py-4 rounded-lg">
+          <div className="flex items-center justify-start space-x-3 bg-gray-100 dark:bg-gray-800 px-6 py-4 rounded-lg">
             <Button
               type="submit"
               variant="primary"

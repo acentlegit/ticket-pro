@@ -16,9 +16,9 @@ const TicketSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product'
   },
-classification:{
-type: String,
-},
+  classification: {
+    type: String,
+  },
   description: {
     type: String,
     required: [true, 'Description is required'],
@@ -64,8 +64,8 @@ type: String,
   status: {
     type: String,
     enum: {
-      values: ['open', 'in-progress', 'pending', 'resolved', 'closed'],
-      message: 'Status must be one of: open, in-progress, pending, resolved, closed'
+      values: ['open', 'in-progress', 'pending', 'resolved', 'closed', 'escalated', 'reopened'],
+      message: 'Status must be one of: open, in-progress, pending, resolved, closed, escalated, reopened'
     },
     default: 'open'
   },
@@ -91,6 +91,20 @@ type: String,
   tags: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tag'
+  }],
+  attachments: [{
+    fileName: String,
+    filePath: String,
+    fileSize: Number,
+    mimeType: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    },
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
   }],
   // Legacy fields for backward compatibility
   createdBy: {
@@ -137,12 +151,12 @@ TicketSchema.index({ assignedTo: 1, status: 1 });
 TicketSchema.index({ createdBy: 1, status: 1 });
 
 // Virtual for ticket age in hours
-TicketSchema.virtual('ageInHours').get(function() {
+TicketSchema.virtual('ageInHours').get(function () {
   return Math.floor((Date.now() - this.createdAt) / (1000 * 60 * 60));
 });
 
 // Pre-save middleware to set resolved/closed dates
-TicketSchema.pre('save', function(next) {
+TicketSchema.pre('save', function (next) {
   if (this.isModified('status')) {
     if (this.status === 'resolved' && !this.resolvedAt) {
       this.resolvedAt = new Date();

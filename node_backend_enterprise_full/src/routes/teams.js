@@ -17,7 +17,7 @@ const authenticateToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid token - user not found' });
     }
@@ -34,7 +34,7 @@ const authenticateToken = async (req, res, next) => {
 router.get('/:companyId/teams', authenticateToken, async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
-    
+
     const filter = {};
     if (search) {
       filter.teamName = { $regex: search, $options: 'i' };
@@ -45,10 +45,10 @@ router.get('/:companyId/teams', authenticateToken, async (req, res) => {
       .sort({ teamName: 1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-    
+
     const total = await Team.countDocuments(filter);
-    
-    res.json({ 
+
+    res.json({
       teams,
       pagination: {
         page: parseInt(page),
@@ -77,19 +77,16 @@ router.post('/:companyId/teams', authenticateToken, async (req, res) => {
       description: description?.trim(),
       departmentHeadId: departmentHeadId || null
     });
-    
-    const populatedTeam = await Team.findById(team._id)
-      .populate('departmentHeadId', 'fullName email');
-    
+
     res.status(201).json({
       message: 'Team created successfully',
-      team: populatedTeam
+      team
     });
   } catch (error) {
     console.error('Create team error:', error);
-    res.status(500).json({ 
-      message: 'Failed to create team', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to create team',
+      error: error.message
     });
   }
 });
@@ -97,13 +94,12 @@ router.post('/:companyId/teams', authenticateToken, async (req, res) => {
 // Get single team
 router.get('/:companyId/teams/:id', authenticateToken, async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id)
-      .populate('departmentHeadId', 'fullName email');
-    
+    const team = await Team.findById(req.params.id);
+
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
-    
+
     res.json({ team });
   } catch (error) {
     console.error('Get team error:', error);
@@ -118,12 +114,12 @@ router.put('/:companyId/teams/:id', authenticateToken, async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate('departmentHeadId', 'fullName email');
-    
+    );
+
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });
     }
-    
+
     res.json({
       message: 'Team updated successfully',
       team
@@ -131,6 +127,22 @@ router.put('/:companyId/teams/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update team error:', error);
     res.status(500).json({ message: 'Failed to update team', error: error.message });
+  }
+});
+
+// Delete team
+router.delete('/:companyId/teams/:id', authenticateToken, async (req, res) => {
+  try {
+    const team = await Team.findByIdAndDelete(req.params.id);
+
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    res.json({ message: 'Team deleted successfully' });
+  } catch (error) {
+    console.error('Delete team error:', error);
+    res.status(500).json({ message: 'Failed to delete team' });
   }
 });
 

@@ -9,9 +9,12 @@ import { bulkUpload } from '../middleware/bulkUpload.js';
 import { parseFile } from '../utils/fileParser.js';
 import { validateAgentData, normalizeAgentData } from '../utils/agentValidator.js';
 import Team from '../models/Team.js';
+import Department from '../models/Department.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { requireRole } from '../middleware/permissions.js';
+import { upload } from '../middleware/upload.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,7 +54,7 @@ router.get('/:companyId/agents', authenticateToken, async (req, res) => {
 
     const filter = {
       companyId,
-      role: { $in: ['agent', 'supervisor', 'admin'] }
+      role: { $in: ['agent', 'company_admin', 'admin'] }
     };
     if (search) {
       filter.$or = [
@@ -91,88 +94,108 @@ router.get('/:companyId/agents', authenticateToken, async (req, res) => {
 });
 
 // Create agent
-router.post('/:companyId/agents', authenticateToken, async (req, res) => {
-  try {
-    const { companyId } = req.params;
-    const { firstName, lastName, email, password, roleAndPermission, teamId, phone, mobile, fax, channelExpert, about, } = req.body;
+router.post('/:companyId/agents',
+  authenticateToken,
+  requireRole(['admin', 'company_admin', 'department_admin']),
+  upload.single('profileImage'),
+  async (req, res) => {
+    try {
+      const { companyId } = req.params;
+      const { firstName, lastName, email, password, roleAndPermission, teamId, phone, mobile, fax, channelExpert, about, departments } = req.body;
 
-    if (!firstName || !lastName || !email) {
-      return res.status(400).json({ message: 'Full name and email are required' });
-    }
-
-    const agentData = {
-      fullName: `${firstName} ${lastName}`,
-      email: email.trim().toLowerCase(),
-      role: roleAndPermission.toLowerCase() || 'agent',
-      teamId: teamId || null,
-      phoneNumber: phone?.trim(),
-      status: 'inactive',
-      companyId,
-      mobile,
-      channel: channelExpert,
-      fax,
-      about
-    };
-
-    if (password) {
-      agentData.password = await bcrypt.hash(password, 12);
-    }
-
-    // Create invitation token
-    const invitationToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 10); // 10 days expiry
-
-    // Create invitation record
-    const invitation = await Invitation.create({
-      recipientEmail: email.trim().toLowerCase(),
-      recipientName: `${firstName} ${lastName}`,
-      inviterName: req.user?.fullName || req.user?.name,
-      inviterEmail: req.user.email,
-      organizationName: 'Ticket Tracker',
-      companyId,
-      token: invitationToken,
-      expiresAt
-    });
-
-    // Send invitation email
-    const invitationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invitation/accept?token=${invitationToken}`;
-    const emailData = {
-      recipientName: `${firstName} ${lastName}`,
-      recipientEmail: email,
-      inviterName: req.user?.fullName || req.user?.name,
-      inviterEmail: req.user.email,
-      organizationName: 'Ticket Tracker',
-      invitationLink,
-      expiryDays: 10
-    };
-
-    await notificationService.sendInvitationsToAgent(emailData);
-
-    await User.create(agentData);
-
-    res.status(201).json({
-      message: 'Invitation sent successfully',
-      invitation: {
-        email: invitation.recipientEmail,
-        expiresAt: invitation.expiresAt
+      if (!firstName || !lastName || !email) {
+        return res.status(400).json({ message: 'Full name and email are required' });
       }
-    });
-  } catch (error) {
-    console.error('Create agent error:', error);
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Email already exists' });
+      // Determine departmentId:
+      // Department Admin -> Forced to their department
+      // Others (Admin/Company Admin) -> Use provided departments (ID) or null
+      // let departmentId = null;
+      // if (req.user.role === 'department_admin') {
+      //   departmentId = req.user.departmentId;
+      // } else if (departments) {
+      //   departmentId = departments;
+      // }
+
+      const agentData = {
+        fullName: `${firstName} ${lastName}`,
+        email: email.trim().toLowerCase(),
+        role: roleAndPermission.toLowerCase() || 'agent',
+        teamId: teamId || null,
+        phoneNumber: phone?.trim(),
+        status: 'inactive',
+        companyId,
+        mobile,
+        channel: channelExpert,
+        fax,
+        about,
+        departmentId: departments,
+        teamId: teamId || null,
+      };
+
+      if (req.file) {
+        agentData.avatar = `/uploads/tickets/${req.file.filename}`;
+      }
+
+      if (password) {
+        agentData.password = await bcrypt.hash(password, 12);
+      }
+
+      // Create invitation token
+      const invitationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 10); // 10 days expiry
+
+      // Create invitation record
+      const invitation = await Invitation.create({
+        recipientEmail: email.trim().toLowerCase(),
+        recipientName: `${firstName} ${lastName}`,
+        inviterName: req.user?.fullName || req.user?.name,
+        inviterEmail: req.user.email,
+        organizationName: 'Ticket Tracker',
+        companyId,
+        token: invitationToken,
+        expiresAt
+      });
+
+      // Send invitation email
+      const invitationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/invitation/accept?token=${invitationToken}`;
+      const emailData = {
+        recipientName: `${firstName} ${lastName}`,
+        recipientEmail: email,
+        inviterName: req.user?.fullName || req.user?.name,
+        inviterEmail: req.user.email,
+        organizationName: 'Ticket Tracker',
+        invitationLink,
+        expiryDays: 10
+      };
+
+      await notificationService.sendInvitationsToAgent(emailData);
+
+      await User.create(agentData);
+
+      res.status(201).json({
+        message: 'Invitation sent successfully',
+        invitation: {
+          email: invitation.recipientEmail,
+          expiresAt: invitation.expiresAt
+        }
+      });
+    } catch (error) {
+      console.error('Create agent error:', error);
+      if (error.code === 11000) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+      res.status(500).json({
+        message: 'Failed to send invitation',
+        error: error.message
+      });
     }
-    res.status(500).json({
-      message: 'Failed to send invitation',
-      error: error.message
-    });
-  }
-});
+  });
 
 // Bulk upload agents
 router.post('/:companyId/agents/bulk-upload',
   authenticateToken,
+  requireRole(['admin', 'company_admin', 'department_admin']),
   bulkUpload.single('file'),
   async (req, res) => {
     const startTime = Date.now();
@@ -263,6 +286,15 @@ router.post('/:companyId/agents/bulk-upload',
             });
           }
 
+          // Find department by name
+          let department = null;
+          if (agentData.departmentName) {
+            department = await Department.findOne({
+              departmentName: agentData.departmentName,
+              companyId
+            });
+          }
+
           // Create agent
           const agent = await User.create({
             fullName: agentData.fullName,
@@ -273,6 +305,7 @@ router.post('/:companyId/agents/bulk-upload',
             role: agentData.role,
             status: agentData.status,
             teamId: team?._id,
+            departmentId: department?._id,
             channel: agentData.channelExpert,
             about: agentData.about,
             companyId
@@ -383,7 +416,7 @@ router.get('/:companyId/agents/:id', authenticateToken, async (req, res) => {
 });
 
 // Update agent
-router.put('/:companyId/agents/:id', authenticateToken, async (req, res) => {
+router.put('/:companyId/agents/:id', authenticateToken, requireRole(['admin', 'company_admin', 'department_admin']), async (req, res) => {
   try {
     const { password, ...updateData } = req.body;
 
@@ -414,7 +447,7 @@ router.put('/:companyId/agents/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete agent
-router.delete('/:companyId/agents/:id', authenticateToken, async (req, res) => {
+router.delete('/:companyId/agents/:id', authenticateToken, requireRole(['admin', 'company_admin', 'department_admin']), async (req, res) => {
   try {
     const agent = await User.findByIdAndDelete(req.params.id);
 

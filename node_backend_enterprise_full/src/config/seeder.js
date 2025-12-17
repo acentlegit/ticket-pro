@@ -57,7 +57,7 @@ export const seedSampleData = async () => {
           name: 'John Supervisor',
           email: 'supervisor@enterprise.com',
           password: await bcrypt.hash('supervisor123', 12),
-          role: 'supervisor',
+          role: 'company_admin',
           phone: '1112223333'
         },
         {
@@ -71,7 +71,7 @@ export const seedSampleData = async () => {
           name: 'Bob Customer',
           email: 'customer@enterprise.com',
           password: await bcrypt.hash('customer123', 12),
-          role: 'customer',
+          role: 'requester',
           phone: '7778889999'
         }
       ];

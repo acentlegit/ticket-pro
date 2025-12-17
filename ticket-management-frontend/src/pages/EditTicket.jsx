@@ -20,7 +20,7 @@ const EditTicket = () => {
   const [showAccountModal, setShowAccountModal] = useState(false)
   const [contactSearchTerm, setContactSearchTerm] = useState('')
   const [accountSearchTerm, setAccountSearchTerm] = useState('')
-  
+
   const [formData, setFormData] = useState({
     contactName: '',
     accountName: '',
@@ -58,7 +58,7 @@ const EditTicket = () => {
       console.log('API Response:', response.data)
       const ticket = response.data.ticket
       console.log('Ticket data:', ticket)
-      
+
       // Format datetime-local value
       const formatDateTimeLocal = (date) => {
         if (!date) return ''
@@ -88,7 +88,7 @@ const EditTicket = () => {
         departmentId: ticket.departmentId || '',
         productId: ticket.productId || ''
       }
-      
+
       console.log('Setting form data:', newFormData)
       setFormData(newFormData)
     } catch (error) {
@@ -231,11 +231,11 @@ const EditTicket = () => {
             {/* Contact Information Section */}
             <div className="card p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Contact Information</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Contact Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Contact Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -261,7 +261,7 @@ const EditTicket = () => {
 
                 {/* Account Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Account Name
                   </label>
                   <div className="relative">
@@ -285,7 +285,7 @@ const EditTicket = () => {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -304,7 +304,7 @@ const EditTicket = () => {
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Phone
                   </label>
                   <div className="relative">
@@ -322,7 +322,7 @@ const EditTicket = () => {
 
                 {/* Subject */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Subject <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -338,7 +338,7 @@ const EditTicket = () => {
 
                 {/* Description */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Description <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -354,7 +354,7 @@ const EditTicket = () => {
 
                 {/* Ticket Owner */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Ticket Owner
                   </label>
                   <div className="relative">
@@ -377,7 +377,7 @@ const EditTicket = () => {
 
                 {/* Department */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Department
                   </label>
                   <select
@@ -397,7 +397,7 @@ const EditTicket = () => {
 
                 {/* Product */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Product
                   </label>
                   <select
@@ -420,11 +420,11 @@ const EditTicket = () => {
             {/* Additional Information Section */}
             <div className="card p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Additional Information</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Due Date */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Due Date
                   </label>
                   <input
@@ -438,7 +438,7 @@ const EditTicket = () => {
 
                 {/* Language */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Language
                   </label>
                   <select
@@ -456,7 +456,7 @@ const EditTicket = () => {
 
                 {/* Status */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Status <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -475,7 +475,7 @@ const EditTicket = () => {
 
                 {/* Priority */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Priority <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -494,7 +494,7 @@ const EditTicket = () => {
 
                 {/* Channel */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Channel
                   </label>
                   <select
@@ -513,7 +513,7 @@ const EditTicket = () => {
 
                 {/* Classification */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Classification
                   </label>
                   <select
@@ -610,7 +610,7 @@ const EditTicket = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
@@ -622,7 +622,7 @@ const EditTicket = () => {
                 />
               </div>
             </div>
-            
+
             <div className="p-6 overflow-y-auto max-h-96">
               {contacts.filter(contact =>
                 contact.firstName?.toLowerCase().includes(contactSearchTerm.toLowerCase()) ||
@@ -687,7 +687,7 @@ const EditTicket = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
@@ -699,7 +699,7 @@ const EditTicket = () => {
                 />
               </div>
             </div>
-            
+
             <div className="p-6 overflow-y-auto max-h-96">
               {accounts.filter(account =>
                 account.accountName?.toLowerCase().includes(accountSearchTerm.toLowerCase())

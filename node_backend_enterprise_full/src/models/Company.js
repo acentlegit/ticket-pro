@@ -24,16 +24,16 @@ const AddressSchema = new mongoose.Schema({
 }, { _id: false });
 
 const CompanySchema = new mongoose.Schema({
-  companyName: { 
-    type: String, 
-    required: [true, 'Company name is required'], 
-    trim: true, 
-    maxlength: [120, 'Company name cannot exceed 120 characters'] 
+  companyName: {
+    type: String,
+    required: [true, 'Company name is required'],
+    trim: true,
+    maxlength: [120, 'Company name cannot exceed 120 characters']
   },
-  description: { 
-    type: String, 
-    trim: true, 
-    maxlength: [2000, 'Description cannot exceed 2000 characters'] 
+  description: {
+    type: String,
+    trim: true,
+    maxlength: [2000, 'Description cannot exceed 2000 characters']
   },
   website: {
     type: String,
@@ -44,21 +44,20 @@ const CompanySchema = new mongoose.Schema({
       message: 'Website must be a valid HTTP/HTTPS URL.'
     }
   },
-  employeeCount: { 
-    type: Number, 
-    min: [0, 'Employee count cannot be negative'], 
-    max: [1000000, 'Employee count cannot exceed 1,000,000'], 
-    default: 0 
+  employeeCount: {
+    type: Number,
+    min: [0, 'Employee count cannot be negative'],
+    max: [1000000, 'Employee count cannot exceed 1,000,000'],
+    default: 0
   },
-  primaryContact: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
+  primaryContact: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   currencyLocale: {
     type: String,
     trim: true,
-    default: 'en-IN',
-    match: [/^[a-z]{2,3}-[A-Z]{2}$/, 'Locale must look like en-US, en-IN, fr-FR, etc.']
+    default: 'en-IN'
   },
   currencyCode: {
     type: String,
@@ -70,11 +69,7 @@ const CompanySchema = new mongoose.Schema({
   address: { type: AddressSchema },
   logoUrl: {
     type: String,
-    trim: true,
-    validate: {
-      validator: (v) => !v || /^https?:\/\/.+\.(png|jpg|jpeg)(\?.*)?$/i.test(v),
-      message: 'Logo URL must end with PNG, JPG, or JPEG.'
-    }
+    trim: true
   },
   isActive: {
     type: Boolean,

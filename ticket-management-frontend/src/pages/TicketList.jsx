@@ -245,7 +245,12 @@ const TicketList = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         to={`/companies/${companyId}/tickets/${ticket._id}`}
-                        className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border"
+                        style={{
+                          backgroundColor: `#${ticket._id?.slice(-6)}15`,
+                          color: `#${ticket._id?.slice(-6)}`,
+                          borderColor: `#${ticket._id?.slice(-6)}30`
+                        }}
                       >
                         #{(ticket._id?.slice(-6) || `${100 + index}`).toUpperCase()}
                       </Link>
@@ -284,12 +289,7 @@ const TicketList = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap relative">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ticket.status === 'open' ? 'bg-blue-100 text-blue-800' :
-                          ticket.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
-                            ticket.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                              ticket.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                                'bg-gray-100 text-gray-800'
-                        }`}>
+                      <span className={`status-badge status-${ticket.status}`}>
                         {ticket.status === 'in-progress' ? 'In Progress' :
                           ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                       </span>

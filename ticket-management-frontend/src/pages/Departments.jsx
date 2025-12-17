@@ -13,7 +13,7 @@ const Departments = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingDepartment, setEditingDepartment] = useState(null)
   const [showAgentDropdown, setShowAgentDropdown] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     departmentName: '',
     displayName: '',
@@ -143,7 +143,7 @@ const Departments = () => {
       formDataToSend.append('displayInHelpCenter', formData.displayInHelpCenter)
       formDataToSend.append('associateAgent', formData.associateAgent)
       formDataToSend.append('description', formData.description)
-      
+
       if (formData.logo) {
         formDataToSend.append('logo', formData.logo)
       }
@@ -266,7 +266,11 @@ const Departments = () => {
                         <div className="flex items-center space-x-3">
                           {dept.logoUrl && (
                             <img
-                              src={dept.logoUrl}
+                              src={
+                                dept.logoUrl.startsWith('http') || dept.logoUrl.startsWith('data:')
+                                  ? dept.logoUrl
+                                  : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${dept.logoUrl}`
+                              }
                               alt={dept.departmentName}
                               className="w-8 h-8 rounded object-cover"
                             />
@@ -283,11 +287,10 @@ const Departments = () => {
                         {dept.associateAgent || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          dept.displayInHelpCenter
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 py-1 text-xs rounded-full ${dept.displayInHelpCenter
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {dept.displayInHelpCenter ? 'Visible' : 'Hidden'}
                         </span>
                       </td>
@@ -418,7 +421,7 @@ const Departments = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-left bg-white flex items-center justify-between"
                 >
                   <span className="text-gray-700">
-                    {formData.associateAgent.length > 0 
+                    {formData.associateAgent.length > 0
                       ? `${formData.associateAgent.length} agent(s) selected`
                       : 'Select agents'
                     }
@@ -427,7 +430,7 @@ const Departments = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                
+
                 {showAgentDropdown && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     {users.map(user => (

@@ -9,7 +9,7 @@ const CompanyProfile = () => {
   const [isEditMode, setIsEditMode] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  
+
   const [formData, setFormData] = useState({
     companyName: '',
 
@@ -40,7 +40,7 @@ const CompanyProfile = () => {
     try {
       setLoading(true)
       const companyId = localStorage.getItem('companyId');
-      const response = await api.get('/companies/'+companyId)
+      const response = await api.get('/companies/' + companyId)
       if (response.data?.company) {
         const company = response.data.company
         const profileData = {
@@ -50,7 +50,7 @@ const CompanyProfile = () => {
           website: company.website || '',
           employeeCount: company.employeeCount || '',
           primaryContact: company.primaryContact?.email || '',
-          currencyLocale: company.currencyLocale || company.currencyCode||'',
+          currencyLocale: company.currencyLocale || company.currencyCode || '',
           street: company.address?.street || '',
           city: company.address?.city || '',
           state: company.address?.state || '',
@@ -63,7 +63,14 @@ const CompanyProfile = () => {
         }
         setFormData(profileData)
         setOriginalData(profileData)
-        setLogoPreview(company.logoUrl)
+
+        let logoSrc = company.logoUrl;
+        if (logoSrc && !logoSrc.startsWith('http') && !logoSrc.startsWith('data:')) {
+          // Assuming API URL is http://localhost:4000 based on api.js or import.meta.env
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+          logoSrc = `${API_URL}${logoSrc}`;
+        }
+        setLogoPreview(logoSrc)
       }
     } catch (error) {
       console.error('Failed to fetch company profile:', error)
@@ -129,32 +136,56 @@ const CompanyProfile = () => {
 
     try {
       const companyId = localStorage.getItem('companyId')
-      const updateData = {
-        companyName: formData.companyName,
+      const formDataToSend = new FormData();
 
-        description: formData.description,
-        website: formData.website,
-        employeeCount: parseInt(formData.employeeCount) || 0,
-        currencyLocale: formData.currencyLocale,
-        address: {
-          street: formData.street,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country,
-          phone: formData.phone,
-          mobile: formData.mobile,
-          fax: formData.fax
-        }
+      // Append simple fields
+      formDataToSend.append('companyName', formData.companyName);
+      formDataToSend.append('description', formData.description || '');
+      formDataToSend.append('website', formData.website || '');
+      formDataToSend.append('employeeCount', formData.employeeCount || 0);
+      formDataToSend.append('currencyLocale', formData.currencyLocale);
+      formDataToSend.append('phone', formData.phone);
+
+      // Append address fields individually as backend expects them in req.body.address structure?
+      // Wait, multer handles form-data. Nested objects in FormData are tricky.
+      // Usually we flatten them or send as JSON string if backend parses it, 
+      // OR we just append keys like 'address[street]'.
+      // Let's check backend model. It expects `req.body` to have `address` object.
+      // Using 'address[street]' notation is standard for some parsers (like creating a true object), 
+      // but standard express `body-parser` used with `multer` might strictly parse `req.body`.
+      // Let's use bracket notation which usually works with body-parser extended: true.
+
+      if (formData.street) formDataToSend.append('address[street]', formData.street);
+      if (formData.city) formDataToSend.append('address[city]', formData.city);
+      if (formData.state) formDataToSend.append('address[state]', formData.state);
+      if (formData.zipCode) formDataToSend.append('address[zipCode]', formData.zipCode);
+      if (formData.country) formDataToSend.append('address[country]', formData.country);
+      if (formData.phone) formDataToSend.append('address[phone]', formData.phone);
+      if (formData.mobile) formDataToSend.append('address[mobile]', formData.mobile);
+      if (formData.fax) formDataToSend.append('address[fax]', formData.fax);
+
+      // Append logo file if new one selected
+      if (formData.logoFile) {
+        formDataToSend.append('logo', formData.logoFile);
       }
 
-      const response = await api.put(`/companies/${companyId}`, updateData)
+      // Note: We don't need to manually set Content-Type for FormData, browser/axios does it with boundary.
+      const response = await api.put(`/companies/${companyId}`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
 
       setSuccess('Company profile updated successfully!')
       setOriginalData(formData)
       setIsEditMode(false)
+      // Update logo preview if returned
+      if (response.data.company && response.data.company.logoUrl) {
+        setLogoPreview(response.data.company.logoUrl);
+      }
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
+      console.error(error);
       setError(error.response?.data?.message || 'Failed to update company profile')
     } finally {
       setLoading(false)
@@ -322,7 +353,7 @@ const CompanyProfile = () => {
             {/* Company Profile Section */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Company Profile</h2>
-              
+
               {/* Logo Upload */}
               <div className="mb-6">
                 <div className="flex items-center space-x-6">
@@ -421,7 +452,7 @@ const CompanyProfile = () => {
             {/* Primary Information */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Primary Information</h3>
-              
+
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">Points To Remember</h4>
                 <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">

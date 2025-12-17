@@ -20,6 +20,12 @@ import companyRoutes from './src/routes/companies.js';
 import brandingRoutes from './src/routes/branding.js';
 import departmentRoutes from './src/routes/departments.js';
 import productRoutes from './src/routes/products.js';
+import permissionsRoutes from './src/routes/permissions.js';
+import slaRulesRoutes from './src/routes/slaRules.js';
+import routingRulesRoutes from './src/routes/routingRules.js';
+import cannedResponsesRoutes from './src/routes/cannedResponses.js';
+import ticketTemplatesRoutes from './src/routes/ticketTemplates.js';
+import auditLogsRoutes from './src/routes/auditLogs.js';
 import { connectDB, initializeModels } from './src/config/database.js';
 import { seedInitialData, seedSampleData } from './src/config/seeder.js';
 
@@ -49,6 +55,10 @@ import './src/models/TicketHistory.js';
 import './src/models/TicketAttachment.js';
 import './src/models/CompanyBranding.js';
 import './src/models/Invitation.js';
+import './src/models/CannedResponse.js';
+import './src/models/TicketTemplate.js';
+import './src/models/RoutingRule.js';
+import './src/models/AuditLog.js';
 
 const app = express();
 
@@ -57,7 +67,7 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:5173', // Vite default port
@@ -66,7 +76,7 @@ const corsOptions = {
       'http://ticket-tracker-dev.s3-website-us-east-1.amazonaws.com',
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
-    
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -75,7 +85,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
     'Origin',
     'X-Requested-With',
@@ -104,32 +114,33 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve uploaded files
 app.use('/uploads', express.static(join(__dirname, 'uploads')));
+app.use('/uploads', express.static(join(__dirname, 'uploads/tickets')));
 
 // Initialize database connection and models
 const initializeApp = async () => {
   try {
     console.log('Starting application initialization...');
-    
+
     // Debug environment variables
     console.log('Environment check:');
     console.log(`- NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
     console.log(`- PORT: ${process.env.PORT || 'not set'}`);
     console.log(`- MONGO_URI: ${process.env.MONGO_URI ? 'set' : 'NOT SET'}`);
-    
+
     // Connect to MongoDB
     await connectDB();
-    
+
     // Initialize models and collections
     await initializeModels();
-    
+
     // Seed initial data
     await seedInitialData();
-    
+
     // Seed sample data in development
     // if (process.env.NODE_ENV === 'development') {
     //   await seedSampleData();
     // }
-    
+
     console.log('✓ Application initialization completed successfully');
   } catch (error) {
     console.error('✗ Application initialization failed:', error);
@@ -164,6 +175,12 @@ app.use('/', companyRoutes);
 app.use('/', brandingRoutes);
 app.use('/', departmentRoutes);
 app.use('/', productRoutes);
+app.use('/', permissionsRoutes);
+app.use('/', slaRulesRoutes);
+app.use('/', routingRulesRoutes);
+app.use('/', cannedResponsesRoutes);
+app.use('/', ticketTemplatesRoutes);
+app.use('/', auditLogsRoutes);
 app.use('/', ticketRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
@@ -176,4 +193,5 @@ app.use((err, _req, res, _next) => {
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Enterprise backend running on port ${PORT}`);
+  console.log('Routes loaded.');
 });

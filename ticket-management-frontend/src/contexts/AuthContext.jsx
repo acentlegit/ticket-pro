@@ -13,6 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const [permissions, setPermissions] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,57 +21,70 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       // Verify token validity
-      fetchUser()
+      initializeAuth()
     } else {
       setLoading(false)
     }
   }, [])
 
-  const fetchUser = async () => {
+  const initializeAuth = async () => {
     try {
-      const response = await api.get('/auth/me')
-      setUser(response.data.user)
+      await Promise.all([fetchUser(), fetchPermissions()])
     } catch (error) {
-      console.error('Failed to fetch user:', error)
+      console.error('Auth initialization failed:', error)
       logout()
     } finally {
       setLoading(false)
     }
   }
 
+  const fetchUser = async () => {
+    try {
+      const response = await api.get('/auth/me')
+      setUser(response.data.user)
+      return response.data.user
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+      throw error
+    }
+  }
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await api.get('/permissions/my-permissions')
+      setPermissions(response.data.permissionIds || [])
+      return response.data.permissionIds
+    } catch (error) {
+      console.error('Failed to fetch permissions:', error)
+      // Don't throw here, just set empty permissions so app can still load
+      setPermissions([])
+    }
+  }
+
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password })
-      const { token, user, companyId } = response.data
-      
+      const { token, user } = response.data
+
       if (!token || !user) {
         throw new Error('Invalid response format from server')
       }
-      
+
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
-      
-      // if (companyId) {
-      //   localStorage.setItem('companyId', companyId)
-      //   // Fetch company details
-      //   try {
-      //     const companyResponse = await api.get(`/companies/${companyId}`)
-      //     debugger
-      //     localStorage.setItem('company', JSON.stringify(companyResponse.data.company))
-      //   } catch (error) {
-      //     console.error('Failed to fetch company details:', error)
-      //   }
-      // }
-      
+
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setUser(user)
-      
+
+      // Fetch permissions after login
+      await fetchPermissions()
+
       return { success: true }
     } catch (error) {
       console.error('Login error:', error)
-      return { 
-        success: false, 
-        error: error.response?.data?.message || error.message || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'Login failed'
       }
     }
   }
@@ -82,6 +96,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('company')
     delete api.defaults.headers.common['Authorization']
     setUser(null)
+    setPermissions([])
   }
 
   const register = async (userData) => {
@@ -89,15 +104,21 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/auth/register', userData)
       return { success: true, data: response.data }
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed'
       }
     }
   }
 
+  const checkPermission = (permissionId) => {
+    return permissions.includes(permissionId)
+  }
+
   const value = {
     user,
+    permissions,
+    checkPermission,
     login,
     logout,
     register,

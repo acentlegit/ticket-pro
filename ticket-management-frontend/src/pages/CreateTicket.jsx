@@ -16,11 +16,13 @@ const CreateTicket = () => {
   const [users, setUsers] = useState([])
   const [departments, setDepartments] = useState([])
   const [products, setProducts] = useState([])
+  const [slaRules, setSlaRules] = useState([])
+  const [tags, setTags] = useState([])
   const [showContactModal, setShowContactModal] = useState(false)
   const [showAccountModal, setShowAccountModal] = useState(false)
   const [contactSearchTerm, setContactSearchTerm] = useState('')
   const [accountSearchTerm, setAccountSearchTerm] = useState('')
-  
+
   const [formData, setFormData] = useState({
     // Contact Information
     contactName: '',
@@ -31,7 +33,7 @@ const CreateTicket = () => {
     description: '',
     ticketOwner: '',
     productName: '',
-    
+
     // Additional Information
     dueDate: '',
     priority: 'medium',
@@ -41,7 +43,7 @@ const CreateTicket = () => {
     departmentId: '',
     productId: '',
     attachments: [],
-    
+
     // Internal fields
     contactId: '',
     accountId: '',
@@ -57,21 +59,25 @@ const CreateTicket = () => {
     try {
       const companyId = localStorage.getItem('companyId')
       // Fetch accounts, contacts, teams, and users for dropdowns
-      const [accountsRes, contactsRes, teamsRes, usersRes, departmentsRes, productsRes] = await Promise.all([
+      const [accountsRes, contactsRes, teamsRes, usersRes, departmentsRes, productsRes, slaRes, tagsRes] = await Promise.all([
         api.get(`/${companyId}/accounts`).catch(() => ({ data: { accounts: [] } })),
         api.get(`/${companyId}/contacts`).catch(() => ({ data: { contacts: [] } })),
         api.get(`/${companyId}/teams`).catch(() => ({ data: { teams: [] } })),
         api.get('/auth/users').catch(() => ({ data: { users: [] } })),
         api.get(`/${companyId}/departments`).catch(() => ({ data: { departments: [] } })),
-        api.get(`/${companyId}/products`).catch(() => ({ data: { products: [] } }))
+        api.get(`/${companyId}/products`).catch(() => ({ data: { products: [] } })),
+        api.get(`/${companyId}/sla-rules`).catch(() => ({ data: { slaRules: [] } })),
+        api.get(`/${companyId}/tags`).catch(() => ({ data: { tags: [] } }))
       ])
-      
+
       setAccounts(accountsRes.data.accounts || [])
       setContacts(contactsRes.data.contacts || [])
       setTeams(teamsRes.data.teams || [])
       setUsers(usersRes.data.users || [])
       setDepartments(departmentsRes.data.departments || [])
       setProducts(productsRes.data.products || [])
+      setSlaRules(slaRes.data.slaRules || [])
+      setTags(tagsRes.data.tags || [])
     } catch (error) {
       console.error('Failed to fetch initial data:', error)
     }
@@ -83,7 +89,7 @@ const CreateTicket = () => {
       ...prev,
       [name]: value
     }))
-    
+
     // Auto-populate contact info when account is selected
     if (name === 'accountId') {
       const selectedAccount = accounts.find(acc => acc._id === value)
@@ -134,26 +140,40 @@ const CreateTicket = () => {
 
     try {
       const companyId = localStorage.getItem('companyId')
-      const ticketData = {
-        subject: formData.subject,
-        description: formData.description,
-        priority: formData.priority,
-        channel: formData.channel,
-        dueDate: formData.dueDate || null,
-        language: formData.language,
-        classification: formData.classification,
-        departmentId:formData.departmentId,
-        assignedAgentId: formData.assignedAgentId || null,
-        teamId: formData.teamId || null,
-        productId: formData.productId || null,
-        contactName: formData.contactName,
-        accountNameOrId: formData.accountId || formData.accountName,
-        email: formData.email,
-        phone: formData.phone,
-        attachments: formData.attachments
+      const formDataToSend = new FormData();
+
+      // Append text fields
+      formDataToSend.append('subject', formData.subject);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('priority', formData.priority);
+      formDataToSend.append('channel', formData.channel);
+      if (formData.dueDate) formDataToSend.append('dueDate', formData.dueDate);
+      if (formData.language) formDataToSend.append('language', formData.language);
+      if (formData.classification) formDataToSend.append('classification', formData.classification);
+      if (formData.departmentId) formDataToSend.append('departmentId', formData.departmentId);
+      if (formData.assignedAgentId) formDataToSend.append('assignedAgentId', formData.assignedAgentId);
+      if (formData.teamId) formDataToSend.append('teamId', formData.teamId);
+      if (formData.productId) formDataToSend.append('productId', formData.productId);
+
+      formDataToSend.append('contactName', formData.contactName);
+      formDataToSend.append('email', formData.email);
+      if (formData.phone) formDataToSend.append('phone', formData.phone);
+      if (formData.accountId || formData.accountName) {
+        formDataToSend.append('accountNameOrId', formData.accountId || formData.accountName);
       }
-      
-      await api.post(`/${companyId}/tickets`, ticketData)
+
+      // Append attachments
+      if (formData.attachments && formData.attachments.length > 0) {
+        formData.attachments.forEach(file => {
+          formDataToSend.append('attachments', file);
+        });
+      }
+
+      await api.post(`/${companyId}/tickets`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       navigate(`/companies/${companyId}/tickets`)
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to create ticket')
@@ -194,9 +214,9 @@ const CreateTicket = () => {
             {/* Contact Information Section */}
             <div className="card p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Ticket Information</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {/* Department */}
+                {/* Department */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-700">
@@ -392,7 +412,7 @@ const CreateTicket = () => {
                   </div>
                 </div>
 
-               
+
 
                 {/* Product */}
                 <div>
@@ -431,7 +451,7 @@ const CreateTicket = () => {
             {/* Additional Information Section */}
             <div className="card p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Additional Information</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Due Date */}
                 <div>
@@ -477,10 +497,12 @@ const CreateTicket = () => {
                     className="input-field"
                     required
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    {['low', 'medium', 'high', 'urgent'].map(p => {
+                      const rule = slaRules.find(r => r.priority === p);
+                      const label = p.charAt(0).toUpperCase() + p.slice(1);
+                      const info = rule ? ` (${rule.name})` : '';
+                      return <option key={p} value={p}>{label}{info}</option>
+                    })}
                   </select>
                 </div>
 
@@ -515,12 +537,11 @@ const CreateTicket = () => {
                     className="input-field"
                   >
                     <option value="">Select Classification</option>
-                    <option value="technical">Technical Issue</option>
-                    <option value="billing">Billing</option>
-                    <option value="account">Account</option>
-                    <option value="feature-request">Feature Request</option>
-                    <option value="bug-report">Bug Report</option>
-                    <option value="other">Other</option>
+                    {tags.map(tag => (
+                      <option key={tag._id} value={tag.tagName}>
+                        {tag.tagName}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -539,7 +560,7 @@ const CreateTicket = () => {
                 <input
                   type="file"
                   multiple
-                  onChange={(e) => setFormData(prev => ({...prev, attachments: Array.from(e.target.files)}))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, attachments: Array.from(e.target.files) }))}
                   className="hidden"
                   id="file-upload"
                 />
@@ -674,7 +695,7 @@ const CreateTicket = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               {/* Search */}
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -687,7 +708,7 @@ const CreateTicket = () => {
                 />
               </div>
             </div>
-            
+
             <div className="p-6 overflow-y-auto max-h-96">
               {filteredContacts.length > 0 ? (
                 <div className="space-y-2">
@@ -722,7 +743,7 @@ const CreateTicket = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -754,7 +775,7 @@ const CreateTicket = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               {/* Search */}
               <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -767,7 +788,7 @@ const CreateTicket = () => {
                 />
               </div>
             </div>
-            
+
             <div className="p-6 overflow-y-auto max-h-96">
               {filteredAccounts.length > 0 ? (
                 <div className="space-y-2">
@@ -802,7 +823,7 @@ const CreateTicket = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600 dark:text-gray-400">

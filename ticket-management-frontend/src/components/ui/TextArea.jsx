@@ -1,19 +1,19 @@
 import { forwardRef } from 'react'
 
-const TextArea = forwardRef(({ 
-  label, 
-  error, 
+const TextArea = forwardRef(({
+  label,
+  error,
   helperText,
   required,
   rows = 4,
   className = '',
   containerClassName = '',
-  ...props 
+  ...props
 }, ref) => {
   return (
     <div className={containerClassName}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -27,10 +27,12 @@ const TextArea = forwardRef(({
           transition-colors
           resize-none
           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-          disabled:bg-gray-100 disabled:cursor-not-allowed
-          ${error 
-            ? 'border-red-300 focus:ring-red-500' 
-            : 'border-gray-300'
+          disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700
+          bg-white dark:bg-gray-800
+          text-gray-900 dark:text-gray-100
+          ${error
+            ? 'border-red-300 focus:ring-red-500'
+            : 'border-gray-300 dark:border-gray-600'
           }
           ${className}
         `}

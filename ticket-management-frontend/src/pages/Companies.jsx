@@ -81,9 +81,7 @@ const Companies = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Website
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Employees
-                </th>
+
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created
                 </th>
@@ -98,9 +96,21 @@ const Companies = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-lg bg-primary-100 flex items-center justify-center">
-                          <Building2 className="h-6 w-6 text-primary-600" />
-                        </div>
+                        {company.logoUrl ? (
+                          <img
+                            src={
+                              company.logoUrl.startsWith('http') || company.logoUrl.startsWith('data:')
+                                ? company.logoUrl
+                                : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${company.logoUrl}`
+                            }
+                            alt=""
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                            <Building2 className="h-6 w-6 text-primary-600" />
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -126,12 +136,7 @@ const Companies = () => {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 text-gray-400 mr-1" />
-                      {company.employeeCount || 0}
-                    </div>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 text-gray-400 mr-1" />

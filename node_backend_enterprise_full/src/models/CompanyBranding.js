@@ -10,8 +10,8 @@ const BrandingSchema = new mongoose.Schema({
     type: String,
     trim: true,
     validate: {
-      validator: (v) => !v || /^https?:\/\/.+\.(png|jpg|jpeg)(\?.*)?$/i.test(v),
-      message: 'Logo URL must end with PNG, JPG, or JPEG.'
+      validator: (v) => !v || /^(https?:\/\/.+\.(png|jpg|jpeg|gif)(\?.*)?|data:image\/(png|jpeg|jpg|gif);base64,.+)$/i.test(v),
+      message: 'Logo must be a valid image URL or base64 encoded image.'
     }
   },
   logoLinkbackUrl: {
@@ -27,8 +27,8 @@ const BrandingSchema = new mongoose.Schema({
     type: String,
     trim: true,
     validate: {
-      validator: (v) => !v || /^https?:\/\/.+\.(png|jpg|jpeg|gif|ico)(\?.*)?$/i.test(v),
-      message: 'Favicon URL must end with PNG, JPG, JPEG, GIF, or ICO.'
+      validator: (v) => !v || /^(https?:\/\/.+\.(png|jpg|jpeg|gif|ico)(\?.*)?|data:image\/(png|jpeg|jpg|gif|x-icon);base64,.+)$/i.test(v),
+      message: 'Favicon must be a valid image URL or base64 encoded image.'
     }
   },
   useDefaultBranding: {

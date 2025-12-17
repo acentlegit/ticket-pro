@@ -27,27 +27,27 @@ export const seedPermissions = async () => {
       { permissionKey: 'tickets.update', description: 'Update tickets', module: 'tickets', action: 'update' },
       { permissionKey: 'tickets.delete', description: 'Delete tickets', module: 'tickets', action: 'delete' },
       { permissionKey: 'tickets.manage', description: 'Manage all tickets', module: 'tickets', action: 'manage' },
-      
+
       // User permissions
       { permissionKey: 'users.create', description: 'Create users', module: 'users', action: 'create' },
       { permissionKey: 'users.read', description: 'View users', module: 'users', action: 'read' },
       { permissionKey: 'users.update', description: 'Update users', module: 'users', action: 'update' },
       { permissionKey: 'users.delete', description: 'Delete users', module: 'users', action: 'delete' },
-      
+
       // Account permissions
       { permissionKey: 'accounts.create', description: 'Create accounts', module: 'accounts', action: 'create' },
       { permissionKey: 'accounts.read', description: 'View accounts', module: 'accounts', action: 'read' },
       { permissionKey: 'accounts.update', description: 'Update accounts', module: 'accounts', action: 'update' },
       { permissionKey: 'accounts.delete', description: 'Delete accounts', module: 'accounts', action: 'delete' },
-      
+
       // Reports permissions
       { permissionKey: 'reports.read', description: 'View reports', module: 'reports', action: 'read' },
       { permissionKey: 'reports.create', description: 'Create reports', module: 'reports', action: 'create' },
-      
+
       // Settings permissions
       { permissionKey: 'settings.read', description: 'View settings', module: 'settings', action: 'read' },
       { permissionKey: 'settings.update', description: 'Update settings', module: 'settings', action: 'update' },
-      
+
       // Admin permissions
       { permissionKey: 'admin.manage', description: 'Full admin access', module: 'admin', action: 'manage' }
     ];
@@ -90,6 +90,14 @@ export const seedRoles = async () => {
           ...ticketPermissions.map(p => p._id),
           ...userPermissions.filter(p => p.action !== 'delete').map(p => p._id),
           ...accountPermissions.map(p => p._id),
+          ...reportsPermissions.map(p => p._id)
+        ]
+      },
+      {
+        roleName: 'Department Admin',
+        description: 'Manage department tickets and agents',
+        permissions: [
+          ...ticketPermissions.map(p => p._id),
           ...reportsPermissions.map(p => p._id)
         ]
       },
@@ -260,14 +268,14 @@ export const seedAccounts = async () => {
 export const seedAllModels = async () => {
   try {
     console.log('Starting model seeding...');
-    
+
     await seedPermissions();
     await seedRoles();
     await seedTeams();
     await seedSlaRules();
     await seedTags();
     await seedAccounts();
-    
+
     console.log('✓ All models seeded successfully');
   } catch (error) {
     console.error('Error in model seeding:', error);

@@ -27,10 +27,17 @@ const UserSchema = new mongoose.Schema({
   role: {   // unified role handling
     type: String,
     enum: {
-      values: ['admin', 'supervisor', 'agent', 'customer'],
-      message: 'Role must be one of: admin, supervisor, agent, customer'
+      values: ['admin', 'company_admin', 'department_admin', 'agent', 'requester'],
+      message: 'Role must be one of: admin, company_admin, department_admin, agent, requester'
     },
-    default: 'customer'
+    default: 'requester'
+  },
+  permissions: [{
+    type: String
+  }],
+  departmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department'
   },
   roleId: {   // optional reference for agent-specific role
     type: mongoose.Schema.Types.ObjectId,
@@ -40,11 +47,11 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Team'
   },
-  companyId: {
+  companyId: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
     // required: [true, 'Company is required']
-  },
+  }],
   status: {   // agent-style status
     type: String,
     enum: {
@@ -63,7 +70,8 @@ const UserSchema = new mongoose.Schema({
     type: String
   },
   avatar: {
-    type: String
+    type: String,
+    trim: true
   },
   lastLogin: {
     type: Date

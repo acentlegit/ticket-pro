@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { 
-  Building2, 
-  Users, 
-  Mail, 
-  Phone, 
-  MessageSquare, 
+import {
+  Building2,
+  Users,
+  Mail,
+  Phone,
+  MessageSquare,
   HelpCircle,
   MessageCircle,
   Globe,
@@ -52,6 +52,8 @@ const Settings = () => {
       navigate(`/companies/${companyId}/products`)
     } else if (itemName === 'Agents') {
       navigate(`/companies/${companyId}/users/agents/new`)
+    } else if (itemName === 'Teams') {
+      navigate(`/companies/${companyId}/teams`)
     }
     // Add more navigation cases as needed
   }
@@ -200,7 +202,7 @@ const Settings = () => {
             <TrendingUp className="h-5 w-5 text-primary-600" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Product Updates</h2>
           </div>
-          
+
           <div className="space-y-6">
             {productUpdates.map((update, index) => (
               <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">

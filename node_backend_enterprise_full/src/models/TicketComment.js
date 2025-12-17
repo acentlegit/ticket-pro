@@ -9,8 +9,8 @@ const TicketCommentSchema = new mongoose.Schema({
   authorType: {
     type: String,
     enum: {
-      values: ['agent', 'contact', 'system'],
-      message: 'Author type must be one of: agent, contact, system'
+      values: ['agent', 'contact', 'system', 'User', 'Contact'],
+      message: 'Author type must be one of: agent, contact, system, User, Contact'
     },
     required: [true, 'Author type is required']
   },

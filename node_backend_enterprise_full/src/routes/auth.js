@@ -60,10 +60,10 @@ router.post('/register', async (req, res) => {
 
     const hash = await bcrypt.hash(password, 12);
     const user = await User.create({
-      fullName:name,
+      fullName: name,
       email,
       password: hash,
-      role: role || 'customer',
+      role: role || 'requester',
       phone,
       companyId
     });
@@ -160,10 +160,20 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// Get all users (admin/supervisor only)
-router.get('/users', authenticateToken, requireRole(['admin', 'supervisor']), async (req, res) => {
+import { getUserFilter } from '../utils/dataFilters.js';
+
+// ...
+
+// Get all users (filtered by role/scope)
+router.get('/users', authenticateToken, requireRole(['admin', 'company_admin', 'department_admin']), async (req, res) => {
   try {
-    const users = await User.find({}, '-password').sort({ createdAt: -1 });
+    const { role, companyId } = req.query;
+    const additionalFilters = {};
+    if (role) additionalFilters.role = role;
+    if (companyId) additionalFilters.companyId = companyId;
+
+    const filter = getUserFilter(req.user, additionalFilters);
+    const users = await User.find(filter, '-password').sort({ createdAt: -1 });
     res.json({ users });
   } catch (error) {
     console.error('Get users error:', error);
@@ -186,7 +196,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
 // Get invitation details
 router.get('/invitation/:token', async (req, res) => {
   try {
-    const invitation = await Invitation.findOne({ 
+    const invitation = await Invitation.findOne({
       token: req.params.token,
       status: 'pending'
     });
@@ -213,7 +223,7 @@ router.post('/invitation/accept', async (req, res) => {
   try {
     const { token, firstName, lastName, password, country, state } = req.body;
 
-    const invitation = await Invitation.findOne({ 
+    const invitation = await Invitation.findOne({
       token,
       status: 'pending'
     });
@@ -228,10 +238,10 @@ router.post('/invitation/accept', async (req, res) => {
       return res.status(400).json({ message: 'Invitation has expired' });
     }
     const hashedPassword = await bcrypt.hash(password, 12);
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ email: invitation.recipientEmail });
-    
+
     if (existingUser && existingUser.status === 'active') {
       return res.status(400).json({ message: 'User already exists' });
     }

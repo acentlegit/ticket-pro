@@ -2,6 +2,7 @@ import express from 'express';
 import Company from '../models/Company.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -30,14 +31,37 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Get all companies created by primary user ID
+// Middleware to check user roles
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    next();
+  };
+};
+
+// Get companies that a user is in (by their companyId array)
 router.get('/companies/by-user/:userId', authenticateToken, async (req, res) => {
   try {
-    const companies = await Company.find({ primaryContact: req.params.userId })
-      .populate('primaryContact', 'name email')
-      .sort({ companyName: 1 });
+    // Get the user with their companyId array populated
+    const user = await User.findById(req.params.userId).populate('companyId');
 
-    res.json({ companies });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // companyId is now an array, so return it directly
+    const companies = user.companyId || [];
+    res.json({
+      companies: companies,
+      count: companies.length
+    });
   } catch (error) {
     console.error('Get companies by user error:', error);
     res.status(500).json({ message: 'Failed to fetch companies' });
@@ -50,6 +74,11 @@ router.get('/companies', authenticateToken, async (req, res) => {
     const { search, page = 1, limit = 50 } = req.query;
 
     const filter = {};
+    // Restrict non-admins to their own companies (if they somehow hit this endpoint)
+    if (req.user.role !== 'admin') {
+      filter._id = { $in: req.user.companyId };
+    }
+
     if (search) {
       filter.$or = [
         { companyName: { $regex: search, $options: 'i' } },
@@ -81,13 +110,15 @@ router.get('/companies', authenticateToken, async (req, res) => {
 });
 
 // Create company
-router.post('/companies', authenticateToken, async (req, res) => {
+router.post('/companies', authenticateToken, requireRole(['admin']), upload.single('logo'), async (req, res) => {
   try {
-    const { companyName, description, website, employeeCount, primaryContact, address, logoUrl } = req.body;
+    const { companyName, description, website, employeeCount, primaryContact, address } = req.body;
 
     if (!companyName) {
       return res.status(400).json({ message: 'Company name is required' });
     }
+
+    const logoUrl = req.file ? `/uploads/tickets/${req.file.filename}` : null;
 
     const company = await Company.create({
       companyName: companyName.trim(),
@@ -96,11 +127,14 @@ router.post('/companies', authenticateToken, async (req, res) => {
       employeeCount: employeeCount || 0,
       primaryContact: primaryContact || req.user._id,
       address: address || null,
-      logoUrl: logoUrl?.trim()
+      logoUrl: logoUrl
     });
 
-    // Associate company with the creating user
-    await User.findByIdAndUpdate(req.user._id, { companyId: company._id });
+    // Add company to the creating user's companyId array (using $addToSet to prevent duplicates)
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { companyId: company._id } }
+    );
 
     const populatedCompany = await Company.findById(company._id)
       .populate('primaryContact', 'name email');
@@ -128,6 +162,9 @@ router.get('/companies/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Company not found' });
     }
 
+    // Optional: Check if user has access to this company
+    // if (req.user.role !== 'admin' && !req.user.companyId.includes(company._id)) ...
+
     res.json({ company });
   } catch (error) {
     console.error('Get company error:', error);
@@ -136,11 +173,17 @@ router.get('/companies/:id', authenticateToken, async (req, res) => {
 });
 
 // Update company
-router.put('/companies/:id', authenticateToken, async (req, res) => {
+router.put('/companies/:id', authenticateToken, requireRole(['admin']), upload.single('logo'), async (req, res) => {
   try {
+    const updateData = { ...req.body };
+
+    if (req.file) {
+      updateData.logoUrl = `/uploads/tickets/${req.file.filename}`;
+    }
+
     const company = await Company.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('primaryContact', 'name email');
 
@@ -159,7 +202,7 @@ router.put('/companies/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete company
-router.delete('/companies/:id', authenticateToken, async (req, res) => {
+router.delete('/companies/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const company = await Company.findByIdAndDelete(req.params.id);
 

@@ -3,6 +3,7 @@ import Department from '../models/Department.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import { upload } from '../middleware/upload.js';
+import { requireRole } from '../middleware/permissions.js';
 
 const router = express.Router();
 
@@ -69,7 +70,7 @@ router.get('/:companyId/departments', authenticateToken, async (req, res) => {
 });
 
 // Create department
-router.post('/:companyId/departments', authenticateToken, upload.single('logo'), async (req, res) => {
+router.post('/:companyId/departments', authenticateToken, requireRole(['admin', 'company_admin']), upload.single('logo'), async (req, res) => {
   try {
     const { companyId } = req.params;
     const { departmentName, displayName, description, displayInHelpCenter, associateAgent } = req.body;
@@ -128,15 +129,15 @@ router.get('/:companyId/departments/:id', authenticateToken, async (req, res) =>
 });
 
 // Update department
-router.put('/:companyId/departments/:id', authenticateToken, upload.single('logo'), async (req, res) => {
+router.put('/:companyId/departments/:id', authenticateToken, requireRole(['admin', 'company_admin']), upload.single('logo'), async (req, res) => {
   try {
     const { departmentName, displayName, description, displayInHelpCenter, associateAgent } = req.body;
-    
+
     let agentIds = [];
     if (associateAgent) {
       agentIds = associateAgent.split(',').map(id => id.trim()).filter(id => id);
     }
-    
+
     const updateData = {
       departmentName: departmentName?.trim(),
       displayName: displayName?.trim(),
@@ -170,7 +171,7 @@ router.put('/:companyId/departments/:id', authenticateToken, upload.single('logo
 });
 
 // Delete department
-router.delete('/:companyId/departments/:id', authenticateToken, async (req, res) => {
+router.delete('/:companyId/departments/:id', authenticateToken, requireRole(['admin', 'company_admin']), async (req, res) => {
   try {
     const department = await Department.findByIdAndDelete(req.params.id);
 

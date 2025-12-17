@@ -9,7 +9,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  
+
   const { user, login } = useAuth()
   const navigate = useNavigate()
 
@@ -25,7 +25,7 @@ const Login = () => {
 
     try {
       const result = await login(email, password)
-      
+
       if (result.success) {
         navigate('/dashboard', { replace: true })
       } else {
@@ -55,14 +55,14 @@ const Login = () => {
             Enterprise Ticket Management System
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -80,7 +80,7 @@ const Login = () => {
                 placeholder="Enter your email"
               />
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -135,7 +135,7 @@ const Login = () => {
               <div className="text-xs text-blue-700 space-y-1">
                 <div><strong>Admin:</strong> admin@enterprise.com / admin123</div>
                 <div><strong>Agent:</strong> agent@enterprise.com / agent123</div>
-                <div><strong>Customer:</strong> customer@enterprise.com / customer123</div>
+                <div><strong>Requester:</strong> customer@enterprise.com / customer123</div>
               </div>
             </div>
           </div>
