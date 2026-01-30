@@ -26,6 +26,7 @@ import BulkUploadTickets from './pages/BulkUploadTickets'
 import BulkUploadAgents from './pages/BulkUploadAgents'
 import InvitationAccept from './pages/InvitationAccept'
 import InvitationRegister from './pages/InvitationRegister'
+import CustomerCare from './pages/CustomerCare'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
             }>
               <Route index element={<Navigate to="/companies" replace />} />
               <Route path="dashboard" element={<Navigate to="/companies" replace />} />
+              <Route path="tickets" element={<Navigate to="/companies" replace />} />
 
               {/* Company-scoped routes */}
               <Route path="companies" element={<Companies />} />
@@ -69,6 +71,7 @@ function App() {
               <Route path="companies/:companyId/products/new" element={<AddProduct />} />
               <Route path="companies/:companyId/teams" element={<Teams />} />
               <Route path="companies/:companyId/branding" element={<CompanyBranding />} />
+              <Route path="companies/:companyId/customer-care" element={<CustomerCare />} />
 
               {/* Standalone routes - for direct access without company context */}
               <Route path="users" element={<UserManagement />} />

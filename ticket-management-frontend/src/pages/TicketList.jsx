@@ -33,15 +33,40 @@ const TicketList = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [hoveredTicket, setHoveredTicket] = useState(null)
 
-  useEffect(() => {
-    fetchTickets()
-  }, [])
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalTickets, setTotalTickets] = useState(0)
+  const [limit] = useState(10) // Tickets per page
 
-  const fetchTickets = async () => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1) // Reset to page 1 on search or filter change
+      fetchTickets(1)
+    }, 300) // Debounce search/filter changes
+    return () => clearTimeout(timer)
+  }, [searchTerm, activeView, selectedCategory])
+
+  useEffect(() => {
+    fetchTickets(page)
+  }, [page])
+
+  const fetchTickets = async (currentPage) => {
+    setLoading(true)
     try {
       const companyId = localStorage.getItem('companyId')
-      const response = await api.get(`/${companyId}/tickets`)
+      const response = await api.get(`/${companyId}/tickets`, {
+        params: {
+          page: currentPage,
+          limit,
+          status: activeView,
+          priority: selectedCategory,
+          search: searchTerm
+        }
+      })
       setTickets(response.data.tickets || [])
+      setTotalTickets(response.data.pagination.total)
+      setTotalPages(response.data.pagination.pages)
     } catch (error) {
       console.error('Failed to fetch tickets:', error)
     } finally {
@@ -50,28 +75,22 @@ const TicketList = () => {
   }
 
   const categories = [
-    { id: 'all', name: 'All Tickets', count: tickets.length },
-    { id: 'open', name: 'Open', count: tickets.filter(t => t.status === 'open').length },
-    { id: 'in-progress', name: 'In Progress', count: tickets.filter(t => t.status === 'in-progress').length },
-    { id: 'resolved', name: 'Resolved', count: tickets.filter(t => t.status === 'resolved').length },
-    { id: 'closed', name: 'Closed', count: tickets.filter(t => t.status === 'closed').length },
+    { id: 'all', name: 'All Tickets' },
+    { id: 'open', name: 'Open' },
+    { id: 'in-progress', name: 'In Progress' },
+    { id: 'resolved', name: 'Resolved' },
+    { id: 'closed', name: 'Closed' },
   ]
 
   const priorityCategories = [
-    { id: 'urgent', name: 'Urgent', count: tickets.filter(t => t.priority === 'urgent').length, color: 'text-red-600' },
-    { id: 'high', name: 'High Priority', count: tickets.filter(t => t.priority === 'high').length, color: 'text-orange-600' },
-    { id: 'medium', name: 'Medium Priority', count: tickets.filter(t => t.priority === 'medium').length, color: 'text-blue-600' },
-    { id: 'low', name: 'Low Priority', count: tickets.filter(t => t.priority === 'low').length, color: 'text-gray-600' },
+    { id: 'urgent', name: 'Urgent', color: 'text-red-600' },
+    { id: 'high', name: 'High Priority', color: 'text-orange-600' },
+    { id: 'medium', name: 'Medium Priority', color: 'text-blue-600' },
+    { id: 'low', name: 'Low Priority', color: 'text-gray-600' },
   ]
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesView = activeView === 'all' || ticket.status === activeView
-    const matchesCategory = selectedCategory === 'all' || ticket.priority === selectedCategory
-
-    return matchesSearch && matchesView && matchesCategory
-  })
+  // Filtering is now handled on the server
+  const displayTickets = tickets
 
   const getStatusIcon = (status) => {
     const icons = {
@@ -128,7 +147,7 @@ const TicketList = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              All Tickets ({filteredTickets.length})
+              All Tickets ({totalTickets})
             </h1>
             <div className="flex items-center space-x-2">
               <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -147,19 +166,19 @@ const TicketList = () => {
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-9 pr-3 py-2 text-sm w-64"
+                className="input-field pl-9 w-64"
               />
             </div>
             <Link
               to={`/companies/${companyId}/tickets/bulk-upload`}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="btn btn-md btn-success"
             >
               <Upload className="h-4 w-4 mr-2" />
               <span>Bulk Upload</span>
             </Link>
             <Link
               to={`/companies/${companyId}/tickets/new`}
-              className="btn-primary flex items-center space-x-2"
+              className="btn-primary btn-md flex items-center space-x-2"
             >
               <Plus className="h-4 w-4" />
               <span>New Ticket</span>
@@ -174,11 +193,11 @@ const TicketList = () => {
           <select
             value={activeView}
             onChange={(e) => setActiveView(e.target.value)}
-            className="input-field text-sm px-3 py-1"
+            className="input-field w-40 py-1"
           >
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name} ({category.count})
+                {category.name}
               </option>
             ))}
           </select>
@@ -186,12 +205,12 @@ const TicketList = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="input-field text-sm px-3 py-1"
+            className="input-field w-40 py-1"
           >
             <option value="all">All Priority</option>
             {priorityCategories.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name} ({category.count})
+                {category.name}
               </option>
             ))}
           </select>
@@ -231,8 +250,8 @@ const TicketList = () => {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredTickets.length > 0 ? (
-                filteredTickets.map((ticket, index) => (
+              {displayTickets.length > 0 ? (
+                displayTickets.map((ticket, index) => (
                   <tr
                     key={ticket._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 relative group"
@@ -332,6 +351,69 @@ const TicketList = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="bg-white dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={page === totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, totalTickets)}</span> of{' '}
+                <span className="font-medium">{totalTickets}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                  disabled={page === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                >
+                  <span className="sr-only">Previous</span>
+                  &lt;
+                </button>
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => setPage(i + 1)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === i + 1
+                        ? 'z-10 bg-primary-50 dark:bg-primary-900/30 border-primary-500 text-primary-600 dark:text-primary-400'
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
+                )).filter((_, i) => {
+                  if (totalPages <= 7) return true;
+                  return i + 1 === 1 || i + 1 === totalPages || Math.abs(i + 1 - page) <= 1;
+                })}
+                <button
+                  onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                >
+                  <span className="sr-only">Next</span>
+                  &gt;
+                </button>
+              </nav>
+            </div>
+          </div>
         </div>
       </div>
     </div>

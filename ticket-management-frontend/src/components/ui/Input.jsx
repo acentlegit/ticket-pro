@@ -20,17 +20,8 @@ const Input = forwardRef(({
       <input
         ref={ref}
         className={`
-          w-full px-3 py-2 
-          border rounded-lg 
-          transition-colors
-          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-          disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700
-          bg-white dark:bg-gray-800
-          text-gray-900 dark:text-gray-100
-          ${error
-            ? 'border-red-300 focus:ring-red-500'
-            : 'border-gray-300 dark:border-gray-600'
-          }
+          input-field
+          ${error ? 'border-red-300 focus:ring-red-500' : ''}
           ${className}
         `}
         {...props}

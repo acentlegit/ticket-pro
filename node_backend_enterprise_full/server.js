@@ -7,6 +7,8 @@ import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { readFileSync } from 'fs';
+import http from 'http';
+import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import authRoutes from './src/routes/auth.js';
@@ -26,6 +28,10 @@ import routingRulesRoutes from './src/routes/routingRules.js';
 import cannedResponsesRoutes from './src/routes/cannedResponses.js';
 import ticketTemplatesRoutes from './src/routes/ticketTemplates.js';
 import auditLogsRoutes from './src/routes/auditLogs.js';
+import chatRoutes from './src/routes/chat.js';
+import messageRoutes from './src/routes/messages.js';
+import livekitRoutes from './src/routes/livekit.js';
+
 import { connectDB, initializeModels } from './src/config/database.js';
 import { seedInitialData, seedSampleData } from './src/config/seeder.js';
 
@@ -59,8 +65,9 @@ import './src/models/CannedResponse.js';
 import './src/models/TicketTemplate.js';
 import './src/models/RoutingRule.js';
 import './src/models/AuditLog.js';
+import './src/models/ChatSession.js';
+import './src/models/Message.js';
 
-const app = express();
 
 // CORS Configuration
 const corsOptions = {
@@ -74,6 +81,7 @@ const corsOptions = {
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5173',
       'http://ticket-tracker-dev.s3-website-us-east-1.amazonaws.com',
+      'http://acentle-app-dev-ticket-tracker-dev.s3-website-us-east-1.amazonaws.com',
       process.env.FRONTEND_URL
     ].filter(Boolean); // Remove undefined values
 
@@ -98,6 +106,51 @@ const corsOptions = {
   exposedHeaders: ['Authorization'],
   maxAge: 86400 // 24 hours
 };
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: corsOptions });
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('join-care', (data) => {
+    console.log('User joined customer care:', data);
+    socket.join('customer-care');
+  });
+
+  socket.on('chat:join', (sessionId) => {
+    console.log(`Socket ${socket.id} joining session: ${sessionId}`);
+    socket.join(`chat:${sessionId}`);
+  });
+
+  socket.on('chat:message', (data) => {
+    console.log(`New message in session ${data.sessionId}:`, data.message.content);
+    io.to(`chat:${data.sessionId}`).emit('chat:message', data.message);
+  });
+
+  socket.on('session:update', (data) => {
+    io.to(`chat:${data.sessionId}`).emit('session:updated', data.session);
+    io.emit('sessions:refresh'); // Notify everyone to refresh lists
+  });
+
+  socket.on('offer', (data) => {
+    socket.to('customer-care').emit('offer', data);
+  });
+
+  socket.on('answer', (data) => {
+    socket.to('customer-care').emit('answer', data);
+  });
+
+  socket.on('ice-candidate', (data) => {
+    socket.to('customer-care').emit('ice-candidate', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
@@ -181,6 +234,9 @@ app.use('/', routingRulesRoutes);
 app.use('/', cannedResponsesRoutes);
 app.use('/', ticketTemplatesRoutes);
 app.use('/', auditLogsRoutes);
+app.use('/', chatRoutes);
+app.use('/', messageRoutes);
+app.use('/livekit', livekitRoutes);
 app.use('/', ticketRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
@@ -191,7 +247,7 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Enterprise backend running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Enterprise backend running on port ${PORT} (with Sockets)`);
   console.log('Routes loaded.');
 });

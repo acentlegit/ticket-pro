@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { X, Home, Ticket, Plus, Users, BarChart3, Settings, Building2 } from 'lucide-react'
+import { X, Home, Ticket, Plus, Users, BarChart3, Settings, Building2, Headphones } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useParams } from 'react-router-dom'
 import { PERMISSIONS } from '../config/permissions'
@@ -26,6 +26,7 @@ const Sidebar = ({ open, setOpen }) => {
       ? [{ name: 'Analytics', href: `/companies/${companyId}/analytics`, icon: BarChart3 }]
       : []),
     { name: 'Settings', href: `/companies/${companyId}/settings`, icon: Settings },
+    { name: 'Customer Care', href: `/companies/${companyId}/customer-care`, icon: Headphones },
   ] : [
     // Global User Management for Super Admin
     ...(user?.role === 'admin'

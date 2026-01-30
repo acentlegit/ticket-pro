@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { ArrowLeft, Upload, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 
 const BulkUploadTickets = () => {
     const navigate = useNavigate();
+    const { companyId } = useParams();
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -70,6 +71,7 @@ const BulkUploadTickets = () => {
                 formData,
                 {
                     headers: { 'Content-Type': 'multipart/form-data' },
+                    timeout: 300000, // 5 minutes for bulk upload
                     onUploadProgress: (progressEvent) => {
                         const percentCompleted = Math.round(
                             (progressEvent.loaded * 100) / progressEvent.total
@@ -86,6 +88,7 @@ const BulkUploadTickets = () => {
             setError(error.response?.data?.message || 'Upload failed');
         } finally {
             setUploading(false);
+            setProgress(0);
         }
     };
 
@@ -118,7 +121,7 @@ const BulkUploadTickets = () => {
                 {/* Header */}
                 <div className="mb-6">
                     <button
-                        onClick={() => navigate('/tickets')}
+                        onClick={() => navigate(`/companies/${companyId}/tickets`)}
                         className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
                     >
                         <ArrowLeft className="h-5 w-5 mr-2" />
@@ -157,8 +160,8 @@ const BulkUploadTickets = () => {
                     <div
                         {...getRootProps()}
                         className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${isDragActive
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                             }`}
                     >
                         <input {...getInputProps()} />
@@ -207,7 +210,7 @@ const BulkUploadTickets = () => {
                         <div className="mt-4">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                                    Uploading...
+                                    {progress === 100 ? 'Processing data...' : 'Uploading...'}
                                 </span>
                                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                                     {progress}%
@@ -237,7 +240,7 @@ const BulkUploadTickets = () => {
                             disabled={!file || uploading}
                             className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
                         >
-                            {uploading ? 'Uploading...' : 'Upload Tickets'}
+                            {uploading ? (progress === 100 ? 'Processing...' : 'Uploading...') : 'Upload Tickets'}
                         </button>
                     </div>
                 </div>
@@ -343,7 +346,7 @@ const BulkUploadTickets = () => {
 
                         <div className="mt-6 flex gap-3">
                             <button
-                                onClick={() => navigate('/tickets')}
+                                onClick={() => navigate(`/companies/${companyId}/tickets`)}
                                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 View All Tickets

@@ -306,31 +306,33 @@ router.post('/:companyId/tickets',
 // Get all tickets
 router.get('/:companyId/tickets', authenticateToken, requireRole(['admin', 'company_admin', 'department_admin', 'agent', 'requester']), async (req, res) => {
   try {
-    const { status, priority, assignedTo, page = 1, limit = 50 } = req.query;
+    const { status, priority, assignedTo, search, page = 1, limit = 50 } = req.query;
     const { companyId } = req.params;
 
-    // Build filter query
     // Build filter query
     const filter = { companyId };
 
     // Role-based scoping matching Permissions Table
+    const ROLES = (await import('../config/permissions.js')).ROLES; // Ensure ROLES is available
     if (req.user.role === ROLES.DEPARTMENT_ADMIN) {
       filter.departmentId = req.user.departmentId;
     } else if (req.user.role === ROLES.AGENT) {
-      // Agent: CreatedBy only (as per latest requirement)
-      // filter.$or = [
-      //   { assignedAgentId: req.user._id },
-      //   { createdBy: req.user._id }
-      // ];
       filter.createdBy = req.user._id;
     } else if (req.user.role === ROLES.REQUESTER) {
-      // Requester: Own only
       filter.createdBy = req.user._id;
     }
 
-    if (status) filter.status = status;
-    if (priority) filter.priority = priority;
+    if (status && status !== 'all') filter.status = status;
+    if (priority && priority !== 'all') filter.priority = priority;
     if (assignedTo) filter.assignedAgentId = assignedTo;
+
+    // Search support
+    if (search) {
+      filter.$or = [
+        { subject: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     const tickets = await Ticket.find(filter)
       .populate('contactId', 'firstName lastName email phoneNumber')
@@ -630,13 +632,22 @@ router.post('/:companyId/tickets/bulk-upload',
         return acc;
       }, {});
 
-      // Process each row
+      // 1. Pre-validate and collect lookup data
+      const validRows = [];
+      const lookupData = {
+        departmentNames: new Set(),
+        productNames: new Set(),
+        teamNames: new Set(),
+        userEmails: new Set(),
+        accountNames: new Set(),
+        contactEmails: new Set()
+      };
+
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        const rowNumber = i + 2; // +2 for header row and 0-index
-
-        // Validate row
+        const rowNumber = i + 2;
         const validation = validateTicketData(row);
+
         if (!validation.valid) {
           results.failureCount++;
           results.errors.push({
@@ -647,135 +658,113 @@ router.post('/:companyId/tickets/bulk-upload',
           continue;
         }
 
-        try {
-          // Normalize data
-          const ticketData = normalizeTicketData(row);
-          // Find or create account
-          let account = null;
-          let contact = null;
-          if (ticketData.accountName) {
-            account = await Account.findOne({
-              accountName: ticketData.accountName,
-              companyId
-            });
-            if (!account) {
-              account = await Account.create({
-                accountName: ticketData.accountName,
-                companyId
-              });
-            }
+        const ticketData = normalizeTicketData(row);
+        validRows.push({ rowNumber, ticketData });
 
-            // Find or create contact
-            if (ticketData.contactEmail) {
-              contact = await Contact.findOne({
-                email: ticketData.contactEmail,
-                companyId
-              });
+        if (ticketData.departmentName) lookupData.departmentNames.add(ticketData.departmentName);
+        if (ticketData.productName) lookupData.productNames.add(ticketData.productName);
+        if (ticketData.teamName) lookupData.teamNames.add(ticketData.teamName);
+        if (ticketData.assignedAgentEmail) lookupData.userEmails.add(ticketData.assignedAgentEmail);
+        if (ticketData.accountName) lookupData.accountNames.add(ticketData.accountName);
+        if (ticketData.contactEmail) lookupData.contactEmails.add(ticketData.contactEmail);
+      }
 
-              if (!contact) {
-                contact = await Contact.create({
-                  firstName: ticketData.contactName || 'Unknown',
-                  email: ticketData.contactEmail,
-                  phoneNumber: ticketData.contactPhone,
-                  accountId: account._id || null,
-                  companyId
-                });
-              }
-            }
-            // Update contact's account if needed
-            // if (contact && !contact.accountId) {
-            //   contact.accountId = account._id;
-            //   await contact.save();
-            // }
-          }
+      // 2. Perform Batch Lookups
+      const [departments, products, teams, users, accounts, contacts] = await Promise.all([
+        Department.find({ departmentName: { $in: Array.from(lookupData.departmentNames) }, companyId }),
+        Product.find({ productName: { $in: Array.from(lookupData.productNames) }, companyId }),
+        Team.find({ teamName: { $in: Array.from(lookupData.teamNames) }, companyId }),
+        User.find({ email: { $in: Array.from(lookupData.userEmails) }, companyId }),
+        Account.find({ accountName: { $in: Array.from(lookupData.accountNames) }, companyId }),
+        Contact.find({ email: { $in: Array.from(lookupData.contactEmails) } }) // Global check
+      ]);
 
-          // Find department by name
-          let department = null;
-          if (ticketData.departmentName) {
-            department = await Department.findOne({
-              departmentName: ticketData.departmentName,
-              companyId
-            });
-          }
+      // Maps for fast lookup
+      const deptMap = new Map(departments.map(d => [d.departmentName, d._id]));
+      const productMap = new Map(products.map(p => [p.productName, p._id]));
+      const teamMap = new Map(teams.map(t => [t.teamName, t._id]));
+      const userMap = new Map(users.map(u => [u.email, u._id]));
+      const accountMap = new Map(accounts.map(a => [a.accountName, a._id]));
+      const contactMap = new Map(contacts.map(c => [c.email, c._id]));
 
-          // Find product by name
-          let product = null;
-          if (ticketData.productName) {
-            product = await Product.findOne({
-              productName: ticketData.productName,
-              companyId
-            });
-          }
-
-          // Find assigned agent by email
-          let assignedAgent = null;
-          if (ticketData.assignedAgentEmail) {
-            assignedAgent = await User.findOne({
-              email: ticketData.assignedAgentEmail,
-              companyId
-            });
-          }
-
-          // Find team by name
-          let team = null;
-          if (ticketData.teamName) {
-            team = await Team.findOne({
-              teamName: ticketData.teamName,
-              companyId
-            });
-          }
-
-          // Create ticket
-          const ticket = await Ticket.create({
-            subject: ticketData.subject,
-            description: ticketData.description,
-            priority: ticketData.priority,
-            status: ticketData.status,
-            channel: ticketData.channel,
-            contactId: contact?._id,
-            accountId: account?._id,
-            departmentId: department?._id,
-            productId: product?._id,
-            assignedAgentId: assignedAgent?._id,
-            teamId: team?._id,
-            slaId: slaMap[ticketData.priority] || slaMap['medium'] || null,
-            dueDate: ticketData.dueDate,
-            classification: ticketData.classification,
-            language: ticketData.language,
-            companyId,
-            createdBy: req.user._id
-          });
-
-          // Create ticket history
-          await TicketHistory.create({
-            ticketId: ticket._id,
-            fieldChanged: 'ticket_created',
-            oldValue: null,
-            newValue: 'Ticket created via bulk upload',
-            changedBy: req.user._id,
-            changedByType: 'agent',
-            changeType: 'create'
-          });
-
-          results.successCount++;
-          results.createdTickets.push({
-            _id: ticket._id,
-            subject: ticket.subject,
-            priority: ticket.priority,
-            status: ticket.status
-          });
-
-        } catch (error) {
-          results.failureCount++;
-          results.errors.push({
-            row: rowNumber,
-            data: row,
-            errors: [{
-              field: 'general',
-              message: error.message
-            }]
-          });
+      // 3. Handle missing Accounts and Contacts (Batch)
+      const uniqueNewAccounts = [];
+      const seenAccountNames = new Set();
+      for (const { ticketData } of validRows) {
+        if (ticketData.accountName && !accountMap.has(ticketData.accountName) && !seenAccountNames.has(ticketData.accountName)) {
+          uniqueNewAccounts.push({ accountName: ticketData.accountName, companyId });
+          seenAccountNames.add(ticketData.accountName);
         }
+      }
+      if (uniqueNewAccounts.length > 0) {
+        const createdAccounts = await Account.insertMany(uniqueNewAccounts);
+        createdAccounts.forEach(a => accountMap.set(a.accountName, a._id));
+      }
+
+      const uniqueNewContacts = [];
+      const seenContactEmails = new Set();
+      for (const { ticketData } of validRows) {
+        if (ticketData.contactEmail && !contactMap.has(ticketData.contactEmail) && !seenContactEmails.has(ticketData.contactEmail)) {
+          const accountId = ticketData.accountName ? accountMap.get(ticketData.accountName) : null;
+          uniqueNewContacts.push({
+            firstName: ticketData.contactName || 'Unknown',
+            email: ticketData.contactEmail,
+            phoneNumber: ticketData.contactPhone,
+            accountId: accountId,
+            companyId
+          });
+          seenContactEmails.add(ticketData.contactEmail);
+        }
+      }
+      if (uniqueNewContacts.length > 0) {
+        const createdContacts = await Contact.insertMany(uniqueNewContacts);
+        createdContacts.forEach(c => contactMap.set(c.email, c._id));
+      }
+
+      // 4. Prepare Tickets for Bulk Insert
+      const ticketsToInsert = validRows.map(({ ticketData }) => ({
+        subject: ticketData.subject,
+        description: ticketData.description,
+        priority: ticketData.priority,
+        status: ticketData.status,
+        channel: ticketData.channel,
+        contactId: contactMap.get(ticketData.contactEmail),
+        accountId: accountMap.get(ticketData.accountName),
+        departmentId: deptMap.get(ticketData.departmentName),
+        productId: productMap.get(ticketData.productName),
+        assignedAgentId: userMap.get(ticketData.assignedAgentEmail),
+        teamId: teamMap.get(ticketData.teamName),
+        slaId: slaMap[ticketData.priority] || slaMap['medium'] || null,
+        dueDate: ticketData.dueDate,
+        classification: ticketData.classification,
+        language: ticketData.language,
+        companyId,
+        createdBy: req.user._id
+      }));
+
+      if (ticketsToInsert.length > 0) {
+        const createdTickets = await Ticket.insertMany(ticketsToInsert);
+        results.successCount = createdTickets.length;
+
+        // 5. Create History in Batch
+        const historyToInsert = createdTickets.map(ticket => ({
+          ticketId: ticket._id,
+          fieldChanged: 'ticket_created',
+          oldValue: null,
+          newValue: 'Ticket created via bulk upload',
+          changedBy: req.user._id,
+          changedByType: 'agent',
+          changeType: 'create'
+        }));
+
+        await TicketHistory.insertMany(historyToInsert);
+
+        results.createdTickets = createdTickets.map(t => ({
+          _id: t._id,
+          subject: t.subject,
+          priority: t.priority,
+          status: t.status
+        }));
       }
 
       const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);

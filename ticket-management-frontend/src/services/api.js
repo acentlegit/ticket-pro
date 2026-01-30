@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
-  timeout: 10000,
+  timeout: 60000,
   withCredentials: true, // Include credentials for CORS
   headers: {
     'Content-Type': 'application/json',
@@ -16,9 +16,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
+
     // Company ID is now part of the URL path
-    
+
     return config
   },
   (error) => {

@@ -127,6 +127,11 @@ const TicketSchema = new mongoose.Schema({
       message: 'SLA status must be one of: within-sla, approaching-breach, breached'
     },
     default: 'within-sla'
+  },
+  confidence: {
+    type: Number,
+    min: 0,
+    max: 1
   }
 }, {
   timestamps: true,

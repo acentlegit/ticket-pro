@@ -194,7 +194,7 @@ const Dashboard = () => {
             <select
               value={timeFilter}
               onChange={(e) => setTimeFilter(e.target.value)}
-              className="input-field text-sm"
+              className="input-field w-44 py-1.5"
             >
               <option>Last 24 Hours</option>
               <option>Last 7 Days</option>
@@ -252,7 +252,7 @@ const Dashboard = () => {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Traffic Analysis</h3>
-              <select className="input-field text-sm px-2 py-1">
+              <select className="input-field w-32 py-1 px-2">
                 <option>Donut</option>
                 <option>Bar</option>
                 <option>Line</option>
@@ -267,7 +267,7 @@ const Dashboard = () => {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Average Handling Time</h3>
-              <select className="input-field text-sm px-2 py-1">
+              <select className="input-field w-40 py-1 px-2">
                 <option>Horizontal Bar</option>
                 <option>Vertical Bar</option>
               </select>
@@ -281,7 +281,7 @@ const Dashboard = () => {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Happiness Rate</h3>
-              <select className="input-field text-sm px-2 py-1">
+              <select className="input-field w-32 py-1 px-2">
                 <option>Donut</option>
                 <option>Gauge</option>
               </select>

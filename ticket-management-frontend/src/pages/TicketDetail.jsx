@@ -302,9 +302,9 @@ const TicketDetail = () => {
         {canEdit && (
           <button
             onClick={() => setEditing(!editing)}
-            className="btn-secondary flex items-center space-x-2"
+            className="btn btn-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 flex items-center space-x-2 shadow-sm"
           >
-            {editing ? <X className="h-5 w-5" /> : <Edit className="h-5 w-5" />}
+            {editing ? <X className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
             <span>{editing ? 'Cancel' : 'Edit'}</span>
           </button>
         )}
@@ -315,7 +315,7 @@ const TicketDetail = () => {
             <button
               onClick={() => handleDeleteTicket(false)}
               disabled={actionLoading === 'soft-delete'}
-              className="btn-secondary text-red-600 hover:text-red-700"
+              className="btn btn-md border border-red-200 bg-white text-red-600 hover:bg-red-50 shadow-sm flex items-center justify-center min-w-[80px]"
             >
               {actionLoading === 'soft-delete' ? '...' : 'Delete'}
             </button>
@@ -324,9 +324,9 @@ const TicketDetail = () => {
             <button
               onClick={() => handleDeleteTicket(true)}
               disabled={actionLoading === 'hard-delete'}
-              className="btn-primary bg-red-600 hover:bg-red-700"
+              className="btn btn-md bg-red-600 text-white hover:bg-red-700 shadow-sm flex items-center justify-center"
             >
-              {actionLoading === 'hard-delete' ? '...' : 'Permanently Delete'}
+              {actionLoading === 'hard-delete' ? '...' : 'Delete Permanently'}
             </button>
           )}
         </div>

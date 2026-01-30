@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 
-const Button = forwardRef(({ 
+const Button = forwardRef(({
   children,
   variant = 'primary',
   size = 'md',
@@ -10,26 +10,26 @@ const Button = forwardRef(({
   leftIcon,
   rightIcon,
   className = '',
-  ...props 
+  ...props
 }, ref) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
-  
+  const baseStyles = 'btn'
+
   const variants = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-    outline: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-primary-500',
-    outlinePrimary: 'bg-white border border-primary-600 text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
+    primary: 'btn-primary',
+    secondary: 'btn-secondary',
+    outline: 'btn-outline',
+    outlinePrimary: 'btn-outline border-primary-600 text-primary-600',
+    danger: 'btn-danger',
+    success: 'btn-success',
+    ghost: 'btn-ghost',
   }
-  
+
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: 'btn-sm',
+    md: 'btn-md',
+    lg: 'btn-lg',
   }
-  
+
   return (
     <button
       ref={ref}
